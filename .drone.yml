@@ -1,0 +1,99 @@
+---
+kind: pipeline
+type: docker
+name: deploy
+
+trigger:
+  branch:
+    - master
+  event:
+    - push
+    - custom
+
+steps:
+  # Updates only the ANTHROPIC_* lines in the host's .env from Drone secrets
+  # — everything else in that file (API_TOKEN, AUTH_SECRET, etc.) is left
+  # untouched, it's maintained by hand on the host and this pipeline never
+  # generated it wholesale. Idempotent: safe to run on every deploy.
+  - name: update-env
+    image: alpine:3.20
+    environment:
+      SSH_HOST:
+        from_secret: test_reports_ssh_host
+      SSH_USER:
+        from_secret: test_reports_ssh_user
+      SSH_KEY:
+        from_secret: test_reports_ssh_key
+      TR_ANTHROPIC_API_KEY:
+        from_secret: ANTHROPIC_API_KEY
+      TR_ANTHROPIC_MODEL:
+        from_secret: ANTHROPIC_MODEL
+      TR_DRONE_SERVER:
+        from_secret: TR_DRONE_SERVER
+      TR_DRONE_TOKEN:
+        from_secret: TR_DRONE_TOKEN
+      TR_DRONE_AUTOTESTS_REPO:
+        from_secret: TR_DRONE_AUTOTESTS_REPO
+      TR_AUTH_GOOGLE_ID:
+        from_secret: AUTH_GOOGLE_ID
+      TR_AUTH_GOOGLE_SECRET:
+        from_secret: AUTH_GOOGLE_SECRET
+      TR_AUTH_ALLOWED_DOMAINS:
+        from_secret: AUTH_ALLOWED_DOMAINS
+      TR_AUTH_ADMIN_EMAILS:
+        from_secret: AUTH_ADMIN_EMAILS
+    commands:
+      - apk add --no-cache openssh-client
+      - install -d -m 700 ~/.ssh
+      - printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+      - chmod 600 ~/.ssh/id_ed25519
+      - touch ~/.ssh/known_hosts
+      - ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+      - chmod 600 ~/.ssh/known_hosts
+      - umask 077
+      - >
+        {
+          printf 'ANTHROPIC_API_KEY=%s\n' "$TR_ANTHROPIC_API_KEY";
+          printf 'ANTHROPIC_MODEL=%s\n'   "$TR_ANTHROPIC_MODEL";
+          printf 'DRONE_SERVER=%s\n'          "$TR_DRONE_SERVER";
+          printf 'DRONE_TOKEN=%s\n'           "$TR_DRONE_TOKEN";
+          printf 'DRONE_AUTOTESTS_REPO=%s\n'  "$TR_DRONE_AUTOTESTS_REPO";
+          printf 'AUTH_GOOGLE_ID=%s\n'        "$TR_AUTH_GOOGLE_ID";
+          printf 'AUTH_GOOGLE_SECRET=%s\n'    "$TR_AUTH_GOOGLE_SECRET";
+          printf 'AUTH_ALLOWED_DOMAINS=%s\n'  "$TR_AUTH_ALLOWED_DOMAINS";
+          printf 'AUTH_ADMIN_EMAILS=%s\n'     "$TR_AUTH_ADMIN_EMAILS";
+        } > /tmp/ai.env
+      - scp -o StrictHostKeyChecking=yes /tmp/ai.env "$SSH_USER@$SSH_HOST:/tmp/testboard-ai.env"
+      - >
+        ssh -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" '
+          ENV_FILE=/home/dev0ps/testboard/.env;
+          grep -v "^ANTHROPIC_API_KEY=\|^ANTHROPIC_MODEL=\|^DRONE_SERVER=\|^DRONE_TOKEN=\|^DRONE_AUTOTESTS_REPO=\|^AUTH_GOOGLE_ID=\|^AUTH_GOOGLE_SECRET=\|^AUTH_ALLOWED_DOMAINS=\|^AUTH_ADMIN_EMAILS=" "$ENV_FILE" > "$ENV_FILE.tmp" || true;
+          cat /tmp/testboard-ai.env >> "$ENV_FILE.tmp";
+          mv "$ENV_FILE.tmp" "$ENV_FILE";
+          chmod 600 "$ENV_FILE";
+          rm -f /tmp/testboard-ai.env
+        '
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: test_reports_ssh_host
+      username:
+        from_secret: test_reports_ssh_user
+      key:
+        from_secret: test_reports_ssh_key
+      port: 22
+      command_timeout: 10m
+      script_stop: true
+      script:
+        - bash /home/dev0ps/testboard/repo/deploy/redeploy.sh
+        - docker image prune -f
+
+  - name: healthcheck
+    image: curlimages/curl:8.7.1
+    environment:
+      HEALTH_URL:
+        from_secret: test_reports_health_url
+    commands:
+      - curl -fsSk --retry 5 --retry-delay 5 --retry-connrefused --retry-all-errors --max-time 30 "$HEALTH_URL"

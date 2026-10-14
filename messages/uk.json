@@ -1,0 +1,463 @@
+{
+  "meta": {
+    "description": "Дашборд звітів Playwright"
+  },
+  "common": {
+    "runs": "{count, plural, one {# прогін} few {# прогони} many {# прогонів} other {# прогону}}",
+    "loading": "Завантаження…",
+    "clearFilters": "Скинути фільтри",
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "add": "Додати",
+    "delete": "Видалити",
+    "enabled": "Увімкнено",
+    "disabled": "Вимкнено",
+    "notAuthenticated": "Ви не автентифіковані",
+    "errorLoading": "Помилка завантаження даних: {message}"
+  },
+  "nav": {
+    "reports": "Репорти",
+    "results": "Результати",
+    "trends": "Тренди",
+    "runTests": "Запуск тестів",
+    "settings": "Налаштування",
+    "projects": "Проєкти"
+  },
+  "userMenu": {
+    "account": "Акаунт",
+    "signedIn": "Ви увійшли",
+    "darkTheme": "Темна тема",
+    "language": "Мова",
+    "settings": "Налаштування",
+    "apiKey": "API-ключ",
+    "apiKeyCopied": "API-ключ скопійовано",
+    "signOut": "Вийти"
+  },
+  "login": {
+    "title": "Увійдіть, щоб продовжити",
+    "google": "Увійти через Google",
+    "or": "або",
+    "apiKey": "API-ключ",
+    "apiKeyPlaceholder": "Введіть API-ключ",
+    "submit": "Увійти з API-ключем",
+    "invalidKey": "Невірний API-ключ",
+    "opening": "Відкриваємо сторінку входу…"
+  },
+  "languages": {
+    "en": "English",
+    "uk": "Українська"
+  },
+  "dates": {
+    "today": "Сьогодні, {time}",
+    "yesterday": "Вчора, {time}",
+    "todayDay": "Сьогодні · {day}",
+    "yesterdayDay": "Вчора · {day}",
+    "justNow": "щойно",
+    "minutesAgo": "{count} хв тому",
+    "hoursAgo": "{count} год тому",
+    "daysAgo": "{count} дн тому"
+  },
+  "filters": {
+    "search": "Пошук…",
+    "rows": "Рядків",
+    "project": "Проєкт",
+    "tags": "Теги",
+    "allTags": "Усі",
+    "noTags": "Тегів немає",
+    "clear": "Очистити",
+    "allTime": "Весь час",
+    "statusAll": "Усі",
+    "statusFailing": "З падіннями"
+  },
+  "reports": {
+    "title": "Репорти",
+    "runTests": "Запустити тести",
+    "total": "{count} всього · {size}",
+    "selected": "Вибрано: {count}",
+    "deselect": "Зняти",
+    "columns": {
+      "run": "Прогін",
+      "outcome": "Результат",
+      "project": "Проєкт",
+      "created": "Створено",
+      "size": "Розмір"
+    },
+    "workers": "{count, plural, one {# воркер} few {# воркери} many {# воркерів} other {# воркера}}",
+    "env": "env",
+    "counts": {
+      "passed": "{count, plural, one {# пройшов} few {# пройшли} many {# пройшло} other {# пройшло}}",
+      "failed": "{count, plural, one {# впав} few {# впали} many {# впало} other {# впало}}",
+      "flaky": "{count, plural, one {# нестабільний} few {# нестабільні} many {# нестабільних} other {# нестабільного}}",
+      "skipped": "{count} пропущено"
+    },
+    "allSkipped": "усе пропущено",
+    "dayFailed": "{count, plural, one {# з падінням} few {# з падіннями} many {# з падіннями} other {# з падіннями}}",
+    "allPassed": "усе пройшло",
+    "actions": {
+      "more": "Більше",
+      "menu": "Дії з репортом",
+      "openPlaywright": "Відкрити в Playwright",
+      "downloadZip": "Завантажити HTML (ZIP)",
+      "exportPdf": "Експорт у PDF",
+      "evidencePdf": "Evidence PDF",
+      "delete": "Видалити"
+    },
+    "empty": {
+      "noFailingTitle": "Репортів з падіннями немає",
+      "noFailingDescription": "У жодному репорті на цій сторінці немає впалих тестів.",
+      "showAll": "Показати всі репорти",
+      "noMatchTitle": "Нічого не знайдено",
+      "noMatchDescription": "Жоден репорт не відповідає пошуку, проєкту, статусу чи датам.",
+      "noReportsTitle": "Репортів ще немає",
+      "noReportsDescription": "Репорти генеруються з результатів тестів. Надішліть результати з CI або завантажте їх, а потім згенеруйте репорт.",
+      "goToResults": "До результатів"
+    }
+  },
+  "deleteReport": {
+    "confirmTitle": "Ви впевнені?",
+    "confirmBody": "{count, plural, one {Репорт буде видалено назавжди.} few {Репорти буде видалено назавжди.} many {Репорти буде видалено назавжди.} other {Репорти буде видалено назавжди.}}",
+    "close": "Закрити",
+    "confirm": "Так, видалити",
+    "buttonTitle": "Видалити репорт",
+    "deleted": "{count, plural, one {Репорт видалено} few {Репорти видалено} many {Репорти видалено} other {Репорти видалено}}"
+  },
+  "generateReport": {
+    "button": "Згенерувати репорт",
+    "title": "Генерація репорту",
+    "failed": "Не вдалося згенерувати репорт:",
+    "projectName": "Назва проєкту",
+    "customName": "Власна назва репорту",
+    "optional": "залиште порожнім, якщо не потрібно",
+    "close": "Закрити",
+    "generate": "Згенерувати",
+    "generated": "Репорт {id} згенеровано"
+  },
+  "results": {
+    "title": "Результати",
+    "total": "{count} всього · {size}",
+    "selected": "Вибрано: {count}",
+    "deselect": "Зняти",
+    "delete": "Видалити",
+    "deleteOne": "Видалити результат",
+    "columns": {
+      "result": "Результат",
+      "project": "Проєкт",
+      "created": "Створено",
+      "tags": "Теги",
+      "size": "Розмір"
+    },
+    "empty": {
+      "noMatchTitle": "Нічого не знайдено",
+      "noMatchDescription": "Жоден результат не відповідає пошуку, проєкту, тегам чи датам.",
+      "noResultsTitle": "Результатів тестів ще немає",
+      "noResultsDescription": "Результати з'являються, коли CI надсилає blob-звіти Playwright в API, — або завантажте zip через «Завантажити результати»."
+    }
+  },
+  "uploadResults": {
+    "button": "Завантажити результати",
+    "buttonTitle": "Завантажити результати",
+    "title": "Завантаження результатів",
+    "file": "Файл результатів",
+    "chooseFile": "Виберіть файл (.zip, .json)",
+    "project": "Проєкт (необов'язково)",
+    "projectPlaceholder": "Введіть назву проєкту",
+    "tags": "Теги (необов'язково)",
+    "tagPlaceholder": "Введіть тег (напр. 'key:value' або 'key: value')",
+    "add": "Додати",
+    "cancel": "Скасувати",
+    "upload": "Завантажити",
+    "selectFile": "Виберіть файл для завантаження",
+    "failed": "Не вдалося завантажити: {error}",
+    "unknownError": "Невідома помилка",
+    "uploaded": "Результати завантажено",
+    "tagFormat": "Тег має бути у форматі \"key: value\""
+  },
+  "deleteResults": {
+    "confirmTitle": "Ви впевнені?",
+    "confirmBody": "Файли результатів буде видалено назавжди.",
+    "close": "Закрити",
+    "confirm": "Так, видалити",
+    "buttonTitle": "Видалити результати",
+    "deleted": "{count, plural, one {Результат видалено} few {Результати видалено} many {Результати видалено} other {Результати видалено}}"
+  },
+  "trends": {
+    "title": "Тренди",
+    "analyzed": "проаналізовано: {count}",
+    "empty": {
+      "title": "Ще немає репортів для аналізу",
+      "description": "Тренди з'являться, щойно для цього проєкту будуть згенеровані репорти. Спробуйте інший проєкт або більше прогонів."
+    },
+    "stats": {
+      "passRate": "Pass rate",
+      "failedTests": "Впалі тести",
+      "flakyTests": "Нестабільні тести",
+      "avgDuration": "Середня тривалість"
+    },
+    "duration": {
+      "minSec": "{min} хв {sec} с",
+      "sec": "{sec} с"
+    },
+    "health": {
+      "title": "Стан прогонів",
+      "healthyOf": "здорових · {healthy} з {total, plural, one {# прогону} few {# прогонів} many {# прогонів} other {# прогону}}",
+      "runsAgo": "{count, plural, one {# прогін тому} few {# прогони тому} many {# прогонів тому} other {# прогону тому}}",
+      "now": "зараз",
+      "runTitle": "{title} — {date} — пройшло {passed} · впало {failed} · нестабільних {flaky}",
+      "lastRun": {
+        "good": "Останній прогін пройшов",
+        "warn": "Останній прогін нестабільний",
+        "bad": "Останній прогін впав",
+        "none": "Останній прогін: тести не запускались"
+      }
+    },
+    "spark": {
+      "duration": "Тривалість, хв",
+      "failed": "Впалі",
+      "flaky": "Нестабільні"
+    },
+    "categories": {
+      "title": "Категорії падінь — {count, plural, one {останній # прогін} few {останні # прогони} many {останні # прогонів} other {останні # прогону}}",
+      "network": "Мережа",
+      "assertion": "Перевірка (assertion)",
+      "element": "Елемент / локатор",
+      "timeout": "Таймаут",
+      "navigation": "Навігація",
+      "other": "Інше"
+    },
+    "topFailures": "Топ падінь (клік — останній репорт)",
+    "noFailures": "За цей період падінь немає.",
+    "chart": {
+      "title": "Pass rate — {count, plural, one {останній # прогін} few {останні # прогони} many {останні # прогонів} other {останні # прогону}} (клік на точку — репорт)",
+      "notEnough": "Замало прогонів для тренду",
+      "passRate": "Pass rate",
+      "passed": "Пройшли",
+      "failed": "Впали",
+      "flaky": "Нестабільні",
+      "skipped": "Пропущені",
+      "total": "Усього",
+      "hasFlaky": "Є нестабільні",
+      "hasFailures": "Є падіння"
+    }
+  },
+  "runTests": {
+    "title": "Запуск тестів",
+    "notConfiguredTitle": "Запуск автотестів не налаштовано",
+    "notConfiguredDescription": "Задайте DRONE_SERVER, DRONE_TOKEN і DRONE_AUTOTESTS_REPO на сервері, щоб запускати автотести звідси.",
+    "environment": "Середовище",
+    "funnel": "Воронка",
+    "tag": "Tag / назва тесту",
+    "run": "Запустити",
+    "abTest": "A/B-тест",
+    "abTestDescription": "Назва A/B-тесту",
+    "abTestPlaceholder": "напр. ab_pricing",
+    "variation": "Варіація",
+    "variationDescription": "Варіації через кому",
+    "country": "Країна",
+    "countryDescription": "Весь прогін через цю країну. Default — дефолтні локації.",
+    "countryDefault": "Default",
+    "usCa": "США — Каліфорнія",
+    "usNv": "США — Невада",
+    "advanced": "A/B та країна",
+    "willRun": "Запуститься:",
+    "cancel": "Скасувати",
+    "recentRuns": "Останні прогони",
+    "onlyMine": "Тільки мої",
+    "env": "Env",
+    "allEnvs": "Усі env",
+    "status": {
+      "all": "Усі",
+      "running": "Активні",
+      "failure": "Впали",
+      "success": "Успішні"
+    },
+    "active": "{count, plural, one {# активний · } few {# активні · } many {# активних · } other {# активного · }}",
+    "successfulOnPage": "{ok}/{total} успішних на цій сторінці",
+    "columns": {
+      "build": "Збірка",
+      "status": "Статус",
+      "params": "Параметри",
+      "startedBy": "Запустив",
+      "started": "Запущено",
+      "duration": "Тривалість"
+    },
+    "rerun": "Повторити прогін з тими ж параметрами",
+    "buildStarted": "Збірку #{number} запущено",
+    "openInDrone": "Відкрити в Drone",
+    "cancelled": "Прогін скасовано",
+    "empty": {
+      "noRunsTitle": "Прогонів ще не було",
+      "noRunsDescription": "Оберіть середовище й воронку вище та запустіть прогін — він з'явиться тут зі статусом у реальному часі.",
+      "startFirst": "Запустити перший прогін",
+      "noMatchTitle": "Нічого не знайдено",
+      "noMatchDescription": "Жоден прогін на цій сторінці не відповідає фільтрам статусу, env чи «Тільки мої»."
+    }
+  },
+  "settings": {
+    "page": {
+      "title": "Налаштування",
+      "subtitle": "config.json · автозбереження",
+      "saving": "Зберігаю…",
+      "notSaved": "Не збережено",
+      "saved": "Збережено {time}",
+      "readFailed": "Не вдалось прочитати конфіг: {error}",
+      "saveFailed": "Не вдалось зберегти: {error}"
+    },
+    "rail": {
+      "onThisPage": "На цій сторінці",
+      "aria": "Розділи налаштувань",
+      "server": "Сервер",
+      "cleanup": "Очищення даних",
+      "automation": "Автоматизація",
+      "notifications": "Нотифікації",
+      "users": "Доступ"
+    },
+    "server": {
+      "title": "Сервер",
+      "reports": "Репорти",
+      "results": "Результати",
+      "totalData": "Всього даних",
+      "freeSpace": "Вільно на диску",
+      "storage": "Сховище"
+    },
+    "cleanup": {
+      "title": "Очищення старих даних",
+      "subtitle": "Автоматичне видалення за розкладом",
+      "results": "Результати",
+      "resultsDescription": "Сирі zip-архіви з CI — після генерації репорту не потрібні.",
+      "reports": "Репорти",
+      "reportsDescription": "Готові HTML-репорти — зазвичай живуть довше за results.",
+      "keepFor": "Зберігати",
+      "days": "дн",
+      "frequency": "Частота",
+      "daily": "Щодня",
+      "weekly": "Щотижня",
+      "cron": "Cron",
+      "day": "День",
+      "time": "Час",
+      "describeDaily": "щодня о {time}",
+      "describeWeekly": "щотижня, {day} о {time}",
+      "describeCron": "cron: {cron}"
+    },
+    "automation": {
+      "title": "Автоматизація",
+      "aiTitle": "AI-аналіз нових репортів",
+      "aiDescription": "Автоматично розбирати падіння кожного нового репорту через AI. Кнопка Generate на сторінці репорту працює незалежно від цього перемикача.",
+      "modelTitle": "Модель для аналізу",
+      "modelDescription": "Haiku — найшвидша й найдешевша, Sonnet — баланс (рекомендовано), Opus — найглибший аналіз, але дорожчий і повільніший."
+    },
+    "notifications": {
+      "title": "Нотифікації",
+      "addChannel": "Додати канал",
+      "editChannel": "Редагувати канал",
+      "edit": "Редагувати",
+      "noChannels": "Каналів немає. Додай Slack webhook або звичайний webhook, щоб отримувати повідомлення про нові репорти.",
+      "withAi": " · + AI-аналіз",
+      "error": "помилка · {detail}",
+      "deleteChannel": "Видалити канал",
+      "log": "Журнал доставки",
+      "log24h": "останні 24 год: {sent} sent · {skipped} skipped · {error} error",
+      "noEntries": "Записів ще немає.",
+      "modalDescription": "Повідомлення про нові репорти надсилатимуться на цей webhook.",
+      "type": "Тип",
+      "name": "Назва",
+      "slackHint": "Створити в Slack: Apps → Incoming Webhooks → Add to Slack → обери канал → скопіюй URL.",
+      "webhookHint": "На цю адресу піде POST з JSON-тілом про кожен репорт.",
+      "slackUrl": "Incoming webhook URL",
+      "webhookUrl": "Webhook URL",
+      "whenToSend": "Коли слати",
+      "conditionHint": "«Падіння + одужання» — повідомляє про червоні прогони і про перший зелений після червоних.",
+      "projectFilter": "Проєкт або job (опційно)",
+      "projectFilterHint": "Матчить project або мітку job репорту (REPORT_JOB з CI). Порожнє — все",
+      "includeAi": "Додавати AI-аналіз",
+      "includeAiHint": "Дописує в повідомлення текст AI-самері репорту (тільки якщо він згенерований — тобто на падіннях).",
+      "required": "Назва і URL обовʼязкові",
+      "conditions": {
+        "always": "Кожен прогін",
+        "has_failures": "Тільки з падіннями",
+        "has_failures_or_recovered": "Падіння + одужання"
+      }
+    },
+    "access": {
+      "title": "Доступ",
+      "signInEnabled": "Вхід увімкнено",
+      "signInDisabled": "Вхід вимкнено",
+      "user": "Користувач",
+      "role": "Роль",
+      "remove": "Прибрати",
+      "nobody": "Ще нікого не додано — усі з домену заходять як viewer.",
+      "readFailed": "Не вдалось прочитати доступи: {error}",
+      "footer": "Лише <b>admin</b> має повний доступ (Settings, видалення, тригер); решта ролей — тільки перегляд. Нові користувачі з дозволеного домену за замовчуванням отримують <b>viewer</b>."
+    }
+  },
+  "status": {
+    "passed": "Пройшов",
+    "failed": "Впав",
+    "flaky": "Нестабільний",
+    "skipped": "Пропущено",
+    "all": "Усі"
+  },
+  "report": {
+    "breadcrumb": "Репорти",
+    "share": "Поділитися",
+    "linkCopied": "Посилання скопійовано",
+    "download": "Завантажити",
+    "downloadZip": "HTML (ZIP)",
+    "exportPdf": "PDF",
+    "evidencePdf": "Evidence PDF",
+    "openPlaywright": "Відкрити в Playwright",
+    "loading": "Завантажуємо репорт…",
+    "noTestSelected": "Тест не вибрано.",
+    "verdict": {
+      "failed": "{count, plural, one {# впав} few {# впали} many {# впало} other {# впало}}",
+      "allPassed": "Усе пройшло",
+      "flaky": "· {count, plural, one {# нестабільний} few {# нестабільні} many {# нестабільних} other {# нестабільного}} ",
+      "passed": "· {count, plural, one {# пройшов} few {# пройшли} many {# пройшло} other {# пройшло}}",
+      "skipped": " · {count} пропущено",
+      "tests": "{count, plural, one {# тест} few {# тести} many {# тестів} other {# тесту}}",
+      "passRateLast": "Pass rate · {count, plural, one {останній #} few {останні #} many {останні #} other {останні #}}",
+      "percentPassed": "% пройшло",
+      "compare": "Порівняти з попереднім прогоном →"
+    },
+    "ai": {
+      "title": "AI-аналіз",
+      "regenerate": "Згенерувати знову",
+      "generate": "Згенерувати",
+      "pending": "AI-аналіз ще формується…",
+      "none": "AI-аналізу ще немає.",
+      "failed": "AI-аналіз не вдався: {reason}",
+      "rateLimited": "AI-аналіз тимчасово недоступний (ліміт запитів) — повторіть за ~{seconds} с.",
+      "notConfigured": "AI-аналіз не налаштовано на цьому сервері.",
+      "unsupportedStorage": "AI-аналіз підтримується лише з локальним файловим сховищем."
+    },
+    "test": {
+      "retry": "повтор {n}/{n}",
+      "openTrace": "Відкрити trace",
+      "notes": "AI аналіз / нотатки",
+      "history": "Історія · {count, plural, one {останній # прогін} few {останні # прогони} many {останні # прогонів} other {останні # прогону}}",
+      "prevScreenshot": "Попередній скріншот",
+      "nextScreenshot": "Наступний скріншот",
+      "loadFailed": "Не вдалося завантажити: {name}"
+    },
+    "list": {
+      "list": "Список",
+      "byFile": "За файлом",
+      "filter": "Фільтр за назвою або файлом",
+      "noMatch": "Жоден тест не підходить.",
+      "noMatchSearch": "Жоден тест не відповідає «{search}»."
+    }
+  },
+  "themeSwitch": {
+    "theme": "Тема",
+    "light": "Світла тема",
+    "dark": "Темна тема"
+  },
+  "errors": {
+    "unreachableTitle": "Не вдалося зв'язатися з зовнішнім сервісом",
+    "unreachableDescription": "Сервер зараз не може до нього під'єднатися (напр. Drone). Спробуйте пізніше.",
+    "forbiddenTitle": "Немає доступу",
+    "forbiddenDescription": "Ваша роль не дозволяє цю дію.",
+    "notFoundTitle": "Не знайдено",
+    "serverTitle": "Не вдалося виконати запит",
+    "unauthorized": "Сесія завершилась — увійдіть знову"
+  }
+}
