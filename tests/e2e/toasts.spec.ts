@@ -11,7 +11,7 @@ for (const [locale, title] of [
 ] as const) {
   test(`an unreachable upstream shows a readable toast (${locale})`, async ({ page, context }) => {
     await useLanguage(context, locale, E2E_BASE_URL);
-    await page.goto('/run-tests');
+    await page.goto('/runs/automated');
 
     await page.getByRole('button', { name: locale === 'uk' ? 'Запустити' : 'Run', exact: true }).click();
 

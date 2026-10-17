@@ -46,7 +46,9 @@ test.describe('Ukrainian UI when signed in', () => {
     ['/reports', 'Репорти'],
     ['/results', 'Результати'],
     ['/trends', 'Тренди'],
-    ['/run-tests', 'Запуск тестів'],
+    ['/cases', 'Тест-кейси'],
+    ['/runs/manual', 'Тест-прогони'],
+    ['/runs/automated', 'Тест-прогони'],
     ['/settings', 'Налаштування'],
   ] as const) {
     test(`${path} is in Ukrainian`, async ({ page }) => {
