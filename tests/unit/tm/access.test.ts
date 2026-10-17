@@ -36,3 +36,13 @@ describe('requiredCapability for /api/tm', () => {
     expect(requiredCapability('/api/tm/runs/2', 'GET')).toBe(CAPABILITIES.view);
   });
 });
+
+describe('requiredCapability for /api/autotests', () => {
+  it.each(['trigger', 'cancel', 'rerun'])('POST %s needs run:tests', (action) => {
+    expect(requiredCapability(`/api/autotests/${action}`, 'POST')).toBe(CAPABILITIES.runTests);
+  });
+
+  it('listing builds needs only view', () => {
+    expect(requiredCapability('/api/autotests/builds', 'GET')).toBe(CAPABILITIES.view);
+  });
+});

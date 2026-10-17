@@ -107,6 +107,7 @@ const ADMIN_ROUTES: AdminRoute[] = [
   { method: 'POST', suffix: '/api/report/generate' },
   { method: 'POST', suffix: '/api/autotests/trigger' }, // run:tests (viewers too)
   { method: 'POST', suffix: '/api/autotests/cancel' }, // run:tests
+  { method: 'POST', suffix: '/api/autotests/rerun' }, // run:tests
   { method: 'POST', suffix: '/ai-summary' }, // POST /api/report/{id}/ai-summary (Regenerate)
 ];
 
@@ -115,9 +116,7 @@ export const requiredCapability = (pathname: string, method: string): Capability
   const match = ADMIN_ROUTES.find((route) => route.method === method && pathname.endsWith(route.suffix));
 
   if (!match) return CAPABILITIES.view;
-  if (match.suffix === '/api/autotests/trigger' || match.suffix === '/api/autotests/cancel') {
-    return CAPABILITIES.runTests;
-  }
+  if (match.suffix.startsWith('/api/autotests/')) return CAPABILITIES.runTests;
   if (match.suffix === '/api/config' || match.suffix === '/api/access') return CAPABILITIES.manageSettings;
 
   return CAPABILITIES.manageReports;
