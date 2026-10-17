@@ -36,7 +36,11 @@ export default function RunPage({ params }: Readonly<{ params: { id: string } }>
   const [activeId, setActiveId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const { data, isPending } = useQuery<RunDetail>(`/api/tm/runs/${runId}`, { dependencies: [runId] });
+  const { data, isPending, isError } = useQuery<RunDetail>(`/api/tm/runs/${runId}`, {
+    dependencies: [runId],
+    // A missing run stays missing; show it right away.
+    retry: false,
+  });
   const { data: assignees = [] } = useQuery<string[]>('/api/tm/assignees');
 
   const complete = useTmMutation(`/api/tm/runs/${runId}`, 'PATCH', () => {
@@ -82,6 +86,21 @@ export default function RunPage({ params }: Readonly<{ params: { id: string } }>
 
     return cases[(i + 1) % cases.length]?.id ?? null;
   };
+
+  if (isError) {
+    return (
+      <EmptyState
+        action={
+          <Button as={NextLink} href="/runs/manual" size="sm" startContent={<ArrowLeft size={13} />} variant="flat">
+            {t('backToRuns')}
+          </Button>
+        }
+        description={t('notFoundDescription')}
+        icon={SearchX}
+        title={t('notFoundTitle')}
+      />
+    );
+  }
 
   if (isPending || !data) {
     return (

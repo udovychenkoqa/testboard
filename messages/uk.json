@@ -521,7 +521,9 @@
       "noMatchDescription": "Змініть фільтри, щоб побачити більше кейсів.",
       "readOnly": "Завершено — лише перегляд",
       "createdBy": "{who}",
-      "resultFilter": "Результат"
+      "resultFilter": "Результат",
+      "notFoundTitle": "Прогін не знайдено",
+      "notFoundDescription": "Можливо, його видалено або посилання хибне."
     },
     "common": {
       "save": "Зберегти",

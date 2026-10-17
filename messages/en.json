@@ -521,7 +521,9 @@
       "noMatchDescription": "Change the filters to see more cases.",
       "readOnly": "Completed — read only",
       "createdBy": "by {who}",
-      "resultFilter": "Result"
+      "resultFilter": "Result",
+      "notFoundTitle": "Run not found",
+      "notFoundDescription": "It may have been removed, or the link is wrong."
     },
     "common": {
       "save": "Save",

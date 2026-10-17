@@ -91,6 +91,13 @@ test.describe('test management', () => {
     expect(errors).toEqual([]);
   });
 
+  test('a run that does not exist says so instead of loading forever', async ({ page }) => {
+    await page.goto('/runs/manual/999999');
+    await expect(page.getByText('Run not found')).toBeVisible();
+    await page.getByText('All runs').click();
+    await expect(page).toHaveURL(/\/runs\/manual$/);
+  });
+
   test('the old Run Tests address opens the Automated tab', async ({ page }) => {
     await page.goto('/run-tests');
     await expect(page).toHaveURL(/\/runs\/automated$/);
