@@ -69,11 +69,22 @@ describe('cases', () => {
     const u = updateCase(
       db,
       c.id,
-      { title: 'New', priority: 'high', automation: 'to_automate', steps: [{ action: 'b', expected: 'B' }], tags: ['y'] },
+      {
+        title: 'New',
+        priority: 'high',
+        automation: 'to_automate',
+        steps: [{ action: 'b', expected: 'B' }],
+        tags: ['y'],
+      },
       'lead@example.com',
     );
 
-    expect(u).toMatchObject({ title: 'New', priority: 'high', automation: 'to_automate', updatedBy: 'lead@example.com' });
+    expect(u).toMatchObject({
+      title: 'New',
+      priority: 'high',
+      automation: 'to_automate',
+      updatedBy: 'lead@example.com',
+    });
     expect(u.steps).toEqual([expect.objectContaining({ action: 'b', expected: 'B' })]);
     expect(u.tags).toEqual(['y']);
     expect(updateCase(db, c.id, { description: 'd' }, 'x').steps).toHaveLength(1);

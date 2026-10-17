@@ -63,9 +63,9 @@ export const createProject = (db: TmDb, input: { key: string; name: string; code
   }
   if (!name) throw new TmError('invalid', 'name is required');
 
-  const clash = db
-    .prepare('SELECT key, code FROM tm_projects WHERE key = ? OR code = ?')
-    .get(input.key, input.code) as { key: string; code: string } | undefined;
+  const clash = db.prepare('SELECT key, code FROM tm_projects WHERE key = ? OR code = ?').get(input.key, input.code) as
+    | { key: string; code: string }
+    | undefined;
 
   if (clash) {
     throw new TmError(

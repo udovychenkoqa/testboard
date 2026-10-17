@@ -121,9 +121,9 @@ export const getCase = (db: TmDb, id: number): CaseDetail => {
 };
 
 const checkSuite = (db: TmDb, projectId: number, suiteId: number) => {
-  const suite = db
-    .prepare('SELECT project_id FROM tm_suites WHERE id = ? AND deleted_at IS NULL')
-    .get(suiteId) as { project_id: number } | undefined;
+  const suite = db.prepare('SELECT project_id FROM tm_suites WHERE id = ? AND deleted_at IS NULL').get(suiteId) as
+    | { project_id: number }
+    | undefined;
 
   if (!suite || suite.project_id !== projectId) throw new TmError('invalid', 'suite not found in this project');
 };
@@ -269,9 +269,9 @@ export const deleteCases = (db: TmDb, ids: number[]): void => {
 
 export const moveCases = (db: TmDb, ids: number[], suiteId: number): void => {
   if (!ids.length) return;
-  const projects = db
-    .prepare(`SELECT DISTINCT project_id FROM tm_cases WHERE id IN (${inList(ids)})`)
-    .all(...ids) as { project_id: number }[];
+  const projects = db.prepare(`SELECT DISTINCT project_id FROM tm_cases WHERE id IN (${inList(ids)})`).all(...ids) as {
+    project_id: number;
+  }[];
 
   if (projects.length !== 1) throw new TmError('invalid', 'cases must belong to one project');
   checkSuite(db, projects[0].project_id, suiteId);

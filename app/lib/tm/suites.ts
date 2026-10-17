@@ -62,9 +62,9 @@ export const listSuites = (db: TmDb, projectId: number): SuiteNode[] => {
 
 const toNode = (db: TmDb, id: number): SuiteNode => {
   const row = getSuiteRow(db, id);
-  const { n } = db
-    .prepare('SELECT COUNT(*) AS n FROM tm_cases WHERE suite_id = ? AND deleted_at IS NULL')
-    .get(id) as { n: number };
+  const { n } = db.prepare('SELECT COUNT(*) AS n FROM tm_cases WHERE suite_id = ? AND deleted_at IS NULL').get(id) as {
+    n: number;
+  };
 
   return { id: row.id, parentId: row.parent_id, name: row.name, position: row.position, caseCount: n };
 };
@@ -82,7 +82,10 @@ const nextPosition = (db: TmDb, projectId: number, parentId: number | null) =>
       .get(projectId, parentId) as { n: number }
   ).n;
 
-export const createSuite = (db: TmDb, input: { projectId: number; parentId?: number | null; name: string }): SuiteNode => {
+export const createSuite = (
+  db: TmDb,
+  input: { projectId: number; parentId?: number | null; name: string },
+): SuiteNode => {
   const name = input.name.trim();
   const parentId = input.parentId ?? null;
 

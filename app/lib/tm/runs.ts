@@ -131,9 +131,7 @@ const resolveCaseIds = (db: TmDb, projectId: number, source: RunSource): number[
           )
         : [];
     case 'cases':
-      return source.caseIds.length
-        ? pick(`${base} AND id IN (${inList(source.caseIds.length)})`, source.caseIds)
-        : [];
+      return source.caseIds.length ? pick(`${base} AND id IN (${inList(source.caseIds.length)})`, source.caseIds) : [];
   }
 };
 
@@ -180,7 +178,9 @@ export const createRun = (
       return { id, number: c.number, snapshot };
     })
     // Grouped by suite path, then by case number — the order testers work through.
-    .sort((a, b) => a.snapshot.suitePath.join(' / ').localeCompare(b.snapshot.suitePath.join(' / ')) || a.number - b.number);
+    .sort(
+      (a, b) => a.snapshot.suitePath.join(' / ').localeCompare(b.snapshot.suitePath.join(' / ')) || a.number - b.number,
+    );
 
   const runId = db.transaction(() => {
     const { lastInsertRowid } = db
