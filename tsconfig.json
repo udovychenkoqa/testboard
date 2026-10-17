@@ -33,5 +33,5 @@
     "tailwind.config.ts",
     ".next-e2e/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "packages/*/dist"]
 }
