@@ -30,6 +30,13 @@ describe('storage paths', () => {
     expect(c.REPORTS_FOLDER).toBe(path.join(process.cwd(), 'data', 'reports'));
   });
 
+  it('accept an absolute DATA_DIR as-is', () => {
+    const c = load('/var/lib/testboard');
+
+    expect(c.DATA_FOLDER).toBe('/var/lib/testboard');
+    expect(c.REPORTS_FOLDER).toBe('/var/lib/testboard/reports');
+  });
+
   it('follow DATA_DIR when set (isolated e2e data)', () => {
     const c = load('tests/e2e/.data');
 
