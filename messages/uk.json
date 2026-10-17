@@ -466,6 +466,90 @@
       "title": "Тест-прогони",
       "manual": "Ручні",
       "automated": "Автоматичні"
+    },
+    "common": {
+      "save": "Зберегти",
+      "cancel": "Скасувати",
+      "create": "Створити",
+      "delete": "Видалити",
+      "rename": "Перейменувати",
+      "edit": "Редагувати",
+      "close": "Закрити",
+      "saved": "Збережено",
+      "deleted": "Видалено",
+      "name": "Назва"
+    },
+    "fields": {
+      "priority": {
+        "label": "Пріоритет",
+        "high": "Високий",
+        "medium": "Середній",
+        "low": "Низький"
+      },
+      "status": {
+        "label": "Статус",
+        "draft": "Чернетка",
+        "actual": "Актуальний",
+        "deprecated": "Застарілий"
+      },
+      "automation": {
+        "label": "Автоматизація",
+        "manual": "Ручний",
+        "automated": "Автоматизований",
+        "to_automate": "Автоматизувати"
+      },
+      "suite": "Набір",
+      "title": "Назва",
+      "description": "Опис",
+      "preconditions": "Передумови",
+      "tags": "Теги",
+      "tagsHint": "Через кому",
+      "steps": "Кроки",
+      "action": "Дія",
+      "expected": "Очікуваний результат",
+      "addStep": "Додати крок",
+      "noSteps": "Кроків ще немає.",
+      "moveUp": "Вище",
+      "moveDown": "Нижче",
+      "removeStep": "Видалити крок"
+    },
+    "projects": {
+      "title": "Тест-кейси",
+      "subtitle": "Оберіть проєкт",
+      "newProject": "Новий проєкт",
+      "key": "Ключ",
+      "keyHint": "Те саме ім'я проєкту, яке CI передає з репортами, напр. hanimax-web",
+      "code": "Код",
+      "codeHint": "Префікс ID кейсів, напр. HW → HW-42",
+      "cases": "{count, plural, one {# кейс} few {# кейси} many {# кейсів} other {# кейсу}}",
+      "automated": "{percent}% автоматизовано",
+      "emptyTitle": "Проєктів ще немає",
+      "emptyDescription": "Створіть проєкт, щоб почати писати тест-кейси.",
+      "created": "Проєкт створено"
+    },
+    "cases": {
+      "back": "Усі проєкти",
+      "newCase": "Новий кейс",
+      "newSuite": "Новий набір",
+      "subSuite": "Додати піднабір",
+      "allCases": "Усі кейси",
+      "search": "Пошук за назвою або ID…",
+      "any": "Будь-який",
+      "selected": "Вибрано: {count}",
+      "move": "Перенести в…",
+      "createRun": "Створити прогін",
+      "deleteSelected": "Видалити вибрані",
+      "emptyTitle": "Тут немає кейсів",
+      "emptyDescription": "Додайте кейс у цей набір або оберіть інший.",
+      "noSuitesTitle": "Почніть з набору",
+      "noSuitesDescription": "Набори групують кейси, напр. Auth, Cart, Checkout.",
+      "createdBy": "Створив {who}",
+      "updated": "Оновлено {when}, {who}",
+      "suiteDeleteConfirm": "Видалити набір, його піднабори та їхні кейси? Минулі прогони збережуть результати.",
+      "caseDeleteConfirm": "Видалити вибрані кейси? Минулі прогони збережуть результати.",
+      "caseCreated": "Кейс {label} створено",
+      "moved": "Кейси перенесено",
+      "readOnly": "Ви можете переглядати тест-кейси; для редагування потрібна роль tester або admin."
     }
   }
 }

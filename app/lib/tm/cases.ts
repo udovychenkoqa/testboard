@@ -3,13 +3,9 @@ import { now, TmError } from './errors';
 import { getProjectById } from './projects';
 import { suiteSubtreeIds } from './suites';
 
-export const PRIORITIES = ['high', 'medium', 'low'] as const;
-export const CASE_STATUSES = ['draft', 'actual', 'deprecated'] as const;
-export const AUTOMATION = ['manual', 'automated', 'to_automate'] as const;
+import { type Automation, type CaseStatus, type Priority } from './constants';
 
-export type Priority = (typeof PRIORITIES)[number];
-export type CaseStatus = (typeof CASE_STATUSES)[number];
-export type Automation = (typeof AUTOMATION)[number];
+export { AUTOMATION, CASE_STATUSES, PRIORITIES, type Automation, type CaseStatus, type Priority } from './constants';
 
 export interface StepInput {
   action: string;

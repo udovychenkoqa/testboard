@@ -466,6 +466,90 @@
       "title": "Test Runs",
       "manual": "Manual",
       "automated": "Automated"
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "create": "Create",
+      "delete": "Delete",
+      "rename": "Rename",
+      "edit": "Edit",
+      "close": "Close",
+      "saved": "Saved",
+      "deleted": "Deleted",
+      "name": "Name"
+    },
+    "fields": {
+      "priority": {
+        "label": "Priority",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "status": {
+        "label": "Status",
+        "draft": "Draft",
+        "actual": "Actual",
+        "deprecated": "Deprecated"
+      },
+      "automation": {
+        "label": "Automation",
+        "manual": "Manual",
+        "automated": "Automated",
+        "to_automate": "To automate"
+      },
+      "suite": "Suite",
+      "title": "Title",
+      "description": "Description",
+      "preconditions": "Preconditions",
+      "tags": "Tags",
+      "tagsHint": "Comma-separated",
+      "steps": "Steps",
+      "action": "Action",
+      "expected": "Expected result",
+      "addStep": "Add step",
+      "noSteps": "No steps yet.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "removeStep": "Remove step"
+    },
+    "projects": {
+      "title": "Test Cases",
+      "subtitle": "Pick a project",
+      "newProject": "New project",
+      "key": "Key",
+      "keyHint": "Same as the project name CI sends with reports, e.g. hanimax-web",
+      "code": "Code",
+      "codeHint": "Prefix for case IDs, e.g. HW → HW-42",
+      "cases": "{count, plural, one {# case} other {# cases}}",
+      "automated": "{percent}% automated",
+      "emptyTitle": "No projects yet",
+      "emptyDescription": "Create a project to start writing test cases.",
+      "created": "Project created"
+    },
+    "cases": {
+      "back": "All projects",
+      "newCase": "New case",
+      "newSuite": "New suite",
+      "subSuite": "Add sub-suite",
+      "allCases": "All cases",
+      "search": "Search by title or ID…",
+      "any": "Any",
+      "selected": "Selected: {count}",
+      "move": "Move to…",
+      "createRun": "Create run",
+      "deleteSelected": "Delete selected",
+      "emptyTitle": "No cases here",
+      "emptyDescription": "Add a case to this suite, or pick another suite.",
+      "noSuitesTitle": "Start with a suite",
+      "noSuitesDescription": "Suites group cases, e.g. Auth, Cart, Checkout.",
+      "createdBy": "Created by {who}",
+      "updated": "Updated {when} by {who}",
+      "suiteDeleteConfirm": "Delete the suite, its sub-suites and their cases? Past runs keep their results.",
+      "caseDeleteConfirm": "Delete the selected cases? Past runs keep their results.",
+      "caseCreated": "Case {label} created",
+      "moved": "Cases moved",
+      "readOnly": "You can view test cases; editing needs the tester or admin role."
     }
   }
 }

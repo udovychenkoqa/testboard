@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { AUTOMATION, CASE_STATUSES, PRIORITIES } from './cases';
-import { RESULTS } from './runs';
+import { AUTOMATION, CASE_STATUSES, PRIORITIES, RESULTS } from './constants';
 
 const id = z.coerce.number().int().positive();
 const step = z.object({ action: z.string().max(5000), expected: z.string().max(5000) });

@@ -3,8 +3,9 @@ import { now, TmError } from './errors';
 import { getCase, type StepInput } from './cases';
 import { suiteSubtreeIds } from './suites';
 
-export const RESULTS = ['untested', 'passed', 'failed', 'blocked', 'skipped'] as const;
-export type Result = (typeof RESULTS)[number];
+import { type Result } from './constants';
+
+export { RESULTS, type Result } from './constants';
 
 export type RunSource =
   | { type: 'all' }
