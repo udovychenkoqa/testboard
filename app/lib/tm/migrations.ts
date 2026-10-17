@@ -82,4 +82,13 @@ export const MIGRATIONS: string[] = [
   );
   CREATE INDEX tm_run_cases_run ON tm_run_cases(run_id);
   `,
+  // 2: autotest pipelines started from Testboard — GitLab doesn't return who pressed Run or a pipeline's inputs.
+  `
+  CREATE TABLE autotest_pipelines (
+    pipeline_id INTEGER PRIMARY KEY,
+    started_by TEXT,
+    inputs TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  `,
 ];
