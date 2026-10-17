@@ -1,8 +1,9 @@
 // Role-based access model — a slimmed port of the upstream
 // (CyborgTests/playwright-reports-server) `packages/shared/src/access.ts`.
 // Framework-agnostic and env-free on purpose: usable from the edge middleware,
-// server routes, and client components alike. Two roles only (admin/viewer),
-// no SQLite/invites/audit — roles are assigned from env (see authFlags.ts).
+// server routes, and client components alike. Three roles (admin, tester,
+// viewer), no invites/audit — roles come from env (see authFlags.ts) and the
+// admin-managed map in config.json (see roleStore.ts).
 
 export const ROLES = {
   admin: 'admin',
@@ -12,13 +13,12 @@ export const ROLES = {
 } as const;
 
 // A role is a free-form label (admin can define e.g. "developer", "qa
-// engineer"). ONLY the special value 'admin' grants privileges — every other
-// label is an organizational tag with read-only (viewer) access. See can().
+// engineer"). 'admin' grants everything and 'tester' adds test-management
+// writes; every other label is an organizational tag with viewer access. See can().
 export type Role = string;
 
-// Roles offered in the admin UI dropdown. Only 'admin' is privileged; 'viewer'
-// is read-only. (More labels could be added here, but they'd all behave as
-// viewer since only 'admin' grants access.)
+// Roles offered in the admin UI dropdown. More labels could be added here, but
+// they'd behave as viewer: only 'admin' and 'tester' carry extra rights.
 export const ASSIGNABLE_ROLES = ['admin', 'tester', 'viewer'] as const;
 
 // The role a signed-in but unassigned allowed-domain user gets by default.
