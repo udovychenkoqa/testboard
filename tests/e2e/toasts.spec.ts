@@ -4,7 +4,7 @@ import { E2E_BASE_URL } from '../../playwright.config';
 
 import { useLanguage } from './helpers';
 
-// DRONE_SERVER points at drone.invalid, so starting a run always fails upstream.
+// GITLAB_URL points at gitlab.invalid, so starting a run always fails upstream.
 for (const [locale, title] of [
   ['en', "Couldn't reach an external service"],
   ['uk', "Не вдалося зв'язатися з зовнішнім сервісом"],
