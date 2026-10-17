@@ -1,11 +1,11 @@
 'use client';
 
+import type { SuiteNode } from '@/app/lib/tm/suites';
+
 import { useMemo, useState } from 'react';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, Folder, Layers, MoreHorizontal } from 'lucide-react';
-
-import type { SuiteNode } from '@/app/lib/tm/suites';
 
 interface SuiteTreeProps {
   suites: SuiteNode[];
@@ -76,7 +76,11 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
           >
             {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
           </button>
-          <button className="flex min-w-0 flex-1 items-center gap-1.5 text-left" type="button" onClick={() => onSelect(suite.id)}>
+          <button
+            className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+            type="button"
+            onClick={() => onSelect(suite.id)}
+          >
             <Folder className="shrink-0" size={13} />
             <span className="truncate">{suite.name}</span>
             <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{total(suite)}</span>

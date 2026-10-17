@@ -1,5 +1,7 @@
 'use client';
 
+import type { ProjectSummary } from '@/app/lib/tm/projects';
+
 import { useState } from 'react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,7 +16,6 @@ import { NewProjectModal } from '@/app/components/tm/new-project-modal';
 import useQuery from '@/app/hooks/useQuery';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
 import { useTmProject } from '@/app/hooks/useTmProject';
-import type { ProjectSummary } from '@/app/lib/tm/projects';
 
 export default function TestCasesProjectsPage() {
   const t = useTranslations('tm.projects');
@@ -34,7 +35,13 @@ export default function TestCasesProjectsPage() {
       <PageHeader
         actions={
           canEdit && (
-            <Button className="h-[30px] px-2.5 text-xs font-semibold" color="primary" size="sm" startContent={<Plus size={14} />} onPress={() => setIsOpen(true)}>
+            <Button
+              className="h-[30px] px-2.5 text-xs font-semibold"
+              color="primary"
+              size="sm"
+              startContent={<Plus size={14} />}
+              onPress={() => setIsOpen(true)}
+            >
               {t('newProject')}
             </Button>
           )
@@ -69,7 +76,9 @@ export default function TestCasesProjectsPage() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate text-[14px] font-semibold group-hover:text-primary">{p.name}</span>
-                  <span className="shrink-0 rounded-md bg-default-100 px-1.5 py-0.5 font-mono text-[11px] text-default-500">{p.code}</span>
+                  <span className="shrink-0 rounded-md bg-default-100 px-1.5 py-0.5 font-mono text-[11px] text-default-500">
+                    {p.code}
+                  </span>
                 </div>
                 <span className="font-mono text-[11.5px] text-default-400">{p.key}</span>
                 <div className="flex items-center gap-3 text-[12px] text-default-500">

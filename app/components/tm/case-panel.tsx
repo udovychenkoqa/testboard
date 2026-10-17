@@ -1,5 +1,8 @@
 'use client';
 
+import type { CaseDetail, CaseInput, StepInput } from '@/app/lib/tm/cases';
+import type { SuiteNode } from '@/app/lib/tm/suites';
+
 import { useEffect, useState } from 'react';
 import {
   Button,
@@ -21,8 +24,6 @@ import FormattedDate from '@/app/components/date-format';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { AUTOMATION, CASE_STATUSES, PRIORITIES } from '@/app/lib/tm/constants';
-import type { CaseDetail, CaseInput, StepInput } from '@/app/lib/tm/cases';
-import type { SuiteNode } from '@/app/lib/tm/suites';
 
 type Mode = { kind: 'new'; suiteId: number } | { kind: 'edit'; caseId: number };
 
@@ -66,7 +67,8 @@ const StepsEditor: React.FC<{ steps: StepInput[]; readOnly: boolean; onChange: (
   onChange,
 }) => {
   const t = useTranslations('tm.fields');
-  const set = (i: number, patch: Partial<StepInput>) => onChange(steps.map((s, j) => (j === i ? { ...s, ...patch } : s)));
+  const set = (i: number, patch: Partial<StepInput>) =>
+    onChange(steps.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   const move = (i: number, d: -1 | 1) => {
     const next = [...steps];
 
@@ -103,7 +105,14 @@ const StepsEditor: React.FC<{ steps: StepInput[]; readOnly: boolean; onChange: (
           </div>
           {!readOnly && (
             <div className="flex shrink-0 flex-col gap-0.5">
-              <Button isIconOnly aria-label={t('moveUp')} isDisabled={i === 0} size="sm" variant="light" onPress={() => move(i, -1)}>
+              <Button
+                isIconOnly
+                aria-label={t('moveUp')}
+                isDisabled={i === 0}
+                size="sm"
+                variant="light"
+                onPress={() => move(i, -1)}
+              >
                 <ArrowUp size={13} />
               </Button>
               <Button
@@ -171,13 +180,24 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
 
   const save = () => {
     if (!form) return;
-    const body = { ...form, tags: form.tags.split(',').map((s) => s.trim()).filter(Boolean) };
+    const body = {
+      ...form,
+      tags: form.tags
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
 
     if (mode?.kind === 'new') create.mutate({ body });
     else update.mutate({ body });
   };
 
-  const select = <T extends string>(label: string, value: T, options: readonly T[], key: 'priority' | 'status' | 'automation') => (
+  const select = <T extends string>(
+    label: string,
+    value: T,
+    options: readonly T[],
+    key: 'priority' | 'status' | 'automation',
+  ) => (
     <Select
       disallowEmptySelection
       isDisabled={readOnly}
@@ -207,7 +227,6 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
           {form && (
             <>
               <Input
-                autoFocus={mode?.kind === 'new'}
                 isReadOnly={readOnly}
                 label={t('fields.title')}
                 labelPlacement="outside"

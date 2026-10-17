@@ -1,5 +1,9 @@
 'use client';
 
+import type { CaseListItem } from '@/app/lib/tm/cases';
+import type { Project } from '@/app/lib/tm/projects';
+import type { SuiteNode } from '@/app/lib/tm/suites';
+
 import { useEffect, useMemo, useState } from 'react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,9 +25,6 @@ import { useCanManageCases } from '@/app/hooks/useCanManageCases';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { useTmProject } from '@/app/hooks/useTmProject';
 import { AUTOMATION, CASE_STATUSES, PRIORITIES } from '@/app/lib/tm/constants';
-import type { CaseListItem } from '@/app/lib/tm/cases';
-import type { Project } from '@/app/lib/tm/projects';
-import type { SuiteNode } from '@/app/lib/tm/suites';
 
 type FilterKey = 'priority' | 'status' | 'automation';
 type NameDialog = { kind: 'create'; parentId: number | null } | { kind: 'rename'; suite: SuiteNode } | null;
@@ -129,7 +130,11 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
         title={project?.name ?? key}
       />
 
-      {!canEdit && <p className="border-b border-divider bg-content2 px-5 py-2 text-[12px] text-default-500">{t('cases.readOnly')}</p>}
+      {!canEdit && (
+        <p className="border-b border-divider bg-content2 px-5 py-2 text-[12px] text-default-500">
+          {t('cases.readOnly')}
+        </p>
+      )}
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 p-5 lg:flex-row">
         <aside className="w-full shrink-0 lg:w-[280px]">
@@ -164,7 +169,9 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
 
           {canEdit && selected.size > 0 && (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
-              <span className="text-[12.5px] font-medium text-primary">{t('cases.selected', { count: selected.size })}</span>
+              <span className="text-[12.5px] font-medium text-primary">
+                {t('cases.selected', { count: selected.size })}
+              </span>
               <Select
                 aria-label={t('cases.move')}
                 className="w-48"
@@ -265,7 +272,13 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
         initial={nameDialog?.kind === 'rename' ? nameDialog.suite.name : ''}
         isOpen={nameDialog !== null}
         isPending={createSuite.isPending || updateSuite.isPending}
-        title={nameDialog?.kind === 'rename' ? t('common.rename') : nameDialog?.parentId ? t('cases.subSuite') : t('cases.newSuite')}
+        title={
+          nameDialog?.kind === 'rename'
+            ? t('common.rename')
+            : nameDialog?.parentId
+              ? t('cases.subSuite')
+              : t('cases.newSuite')
+        }
         onClose={() => setNameDialog(null)}
         onSubmit={(name) => {
           if (nameDialog?.kind === 'rename') {

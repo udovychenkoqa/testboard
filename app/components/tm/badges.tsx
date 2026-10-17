@@ -1,9 +1,9 @@
 'use client';
 
+import type { Automation, Priority } from '@/app/lib/tm/constants';
+
 import { useTranslations } from 'next-intl';
 import { Bot, Hand, Wrench } from 'lucide-react';
-
-import type { Automation, Priority } from '@/app/lib/tm/constants';
 
 const PRIORITY_CLASS: Record<Priority, string> = {
   high: 'bg-danger/10 text-danger',

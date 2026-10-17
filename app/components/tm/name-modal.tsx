@@ -30,7 +30,6 @@ export const NameModal: React.FC<NameModalProps> = ({ isOpen, title, initial = '
         <ModalHeader>{title}</ModalHeader>
         <ModalBody>
           <Input
-            autoFocus
             label={t('name')}
             labelPlacement="outside"
             value={name}

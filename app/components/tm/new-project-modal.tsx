@@ -1,12 +1,13 @@
 'use client';
 
+import type { Project } from '@/app/lib/tm/projects';
+
 import { useEffect, useState } from 'react';
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { useTmMutation } from '@/app/hooks/useTmMutation';
-import type { Project } from '@/app/lib/tm/projects';
 
 // "Hanimax Web" → key "hanimax-web", code "HW" (editable suggestions).
 const suggestKey = (name: string) =>
@@ -61,7 +62,6 @@ export const NewProjectModal: React.FC<{ isOpen: boolean; onClose: () => void; o
         <ModalHeader>{t('projects.newProject')}</ModalHeader>
         <ModalBody className="gap-4">
           <Input
-            autoFocus
             label={t('common.name')}
             labelPlacement="outside"
             placeholder="Hanimax Web" // i18n-ignore — example

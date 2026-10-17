@@ -8,12 +8,23 @@ interface ConfirmModalProps {
   title: string;
   message: string;
   isPending?: boolean;
+  confirmLabel?: string;
+  color?: 'danger' | 'primary';
   onClose: () => void;
   onConfirm: () => void;
 }
 
-// Destructive-action confirmation (delete suite / cases).
-export const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, title, message, isPending, onClose, onConfirm }) => {
+// Confirmation for destructive or final actions (delete suite / cases, complete run).
+export const ConfirmModal: React.FC<ConfirmModalProps> = ({
+  isOpen,
+  title,
+  message,
+  isPending,
+  confirmLabel,
+  color = 'danger',
+  onClose,
+  onConfirm,
+}) => {
   const t = useTranslations('tm.common');
 
   return (
@@ -27,8 +38,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, title, messa
           <Button variant="light" onPress={onClose}>
             {t('cancel')}
           </Button>
-          <Button color="danger" isLoading={isPending} onPress={onConfirm}>
-            {t('delete')}
+          <Button color={color} isLoading={isPending} onPress={onConfirm}>
+            {confirmLabel ?? t('delete')}
           </Button>
         </ModalFooter>
       </ModalContent>
