@@ -52,10 +52,20 @@ Set by hand in the host's `.env`:
 | `UI_AUTH_EXPIRE_HOURS` | Session length in hours (default: `8`)            |
 | `DATA_STORAGE`         | `fs` or `s3` (default: `fs`)                      |
 
-Updated on every deploy from Drone secrets (`.drone.yml`, `update-env` step): `ANTHROPIC_API_KEY`,
-`ANTHROPIC_MODEL`, `DRONE_SERVER`, `DRONE_TOKEN`, `DRONE_AUTOTESTS_REPO`, `AUTH_GOOGLE_ID`,
+Updated on every deploy from GitLab CI/CD variables (`.gitlab-ci.yml`, `update-env` job): `ANTHROPIC_API_KEY`,
+`ANTHROPIC_MODEL`, `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_AUTOTESTS_PROJECT`, `GITLAB_REF`, `AUTH_GOOGLE_ID`,
 `AUTH_GOOGLE_SECRET`, `AUTH_ALLOWED_DOMAINS`, `AUTH_ADMIN_EMAILS`. Everything else in `.env` is left
 untouched.
+
+## Moving to GitLab (one-off owner checklist)
+
+1. Create the CI/CD variables listed at the top of `.gitlab-ci.yml` (Protected; secrets Masked;
+   `SSH_PRIVATE_KEY` as a File variable).
+2. On the host, point the clone at GitLab, because `redeploy.sh` pulls `origin/master`:
+   `git -C /home/dev0ps/testboard/repo remote set-url origin <gitlab repo url>`.
+3. Make sure the GitLab runner can reach the host over SSH.
+4. Push to `master` and watch `update-env` → `deploy` → `healthcheck`. The first run also removes the old
+   `DRONE_*` lines from `.env`.
 
 ## Nginx Proxy Manager
 

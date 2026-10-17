@@ -37,7 +37,7 @@ npx playwright test -g "test name"                       # one test
 - `playwright.config.ts` starts its **own** server, so real data and the server on `:3000` are left alone:
   - port `:3100`, `DATA_DIR=tests/e2e/.data` (wiped at start), `.next-e2e`;
   - a test `API_TOKEN`;
-  - `DRONE_SERVER=http://drone.invalid`, so the "external service unreachable" path is deterministic.
+  - `GITLAB_URL=http://gitlab.invalid`, so the "external service unreachable" path is deterministic.
 - `global.setup.ts` uploads the `fixtures/blob.zip` fixture, generates a report and signs in with the API
   token. The signed-in state is saved in `tests/e2e/.auth/`.
 - `collectConsoleErrors(page)` collects console errors and 4xx/5xx responses. Pages must render without

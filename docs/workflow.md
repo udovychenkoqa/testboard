@@ -2,7 +2,7 @@
 
 ## Branches
 
-- `master` is the stable branch, and **every push deploys automatically** (`.drone.yml`).
+- `master` is the stable branch, and **every push deploys automatically** (`.gitlab-ci.yml`).
 - Work happens on branches: `feat/<short>`, `fix/<short>`, `chore/<short>`, `docs/<short>`.
 - No merges into `master`, force-pushes or history rewrites without an explicit decision from the owner.
 
@@ -49,7 +49,7 @@ Specs and plans stay in the repo as a record of decisions.
 
 - `.env` holds real local values and is **never committed**. `.env.example` has only variable names and
   placeholders.
-- On the host, CI updates part of `.env` from Drone secrets (`ANTHROPIC_*`, `DRONE_*`, `AUTH_GOOGLE_*`…);
+- On the host, CI updates part of `.env` from GitLab CI/CD variables (`ANTHROPIC_*`, `GITLAB_*`, `AUTH_GOOGLE_*`…);
   the rest is maintained by hand.
 - Tokens for local checks are throwaway (`openssl rand -hex 32`). Real tokens never go into tests,
   screenshots or chat.
@@ -59,7 +59,7 @@ Specs and plans stay in the repo as a record of decisions.
 
 Step by step in [deploy/README.md](../deploy/README.md). In short:
 
-- push to `master` → Drone updates `.env` on the host → `deploy/redeploy.sh` rebuilds and restarts the
+- push to `master` → GitLab CI updates `.env` on the host → `deploy/redeploy.sh` rebuilds and restarts the
   container;
 - health check: `GET /api/ping`;
 - data lives in the `data/` volume. Backing up that folder backs up reports, settings and test cases.

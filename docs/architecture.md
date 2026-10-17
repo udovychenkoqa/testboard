@@ -12,7 +12,8 @@ An internal QA dashboard for the team. It has five jobs:
 2. **Generates HTML reports.** Several results are merged into one report (`merge-reports`) and served.
 3. **Analyses.** Trends, flaky tests, an AI summary of failures (Anthropic), Slack or webhook
    notifications.
-4. **Runs autotests.** Triggers and cancels Drone CI builds (the Automated tab in Test Runs).
+4. **Runs autotests.** Starts, cancels and reruns the autotests' GitLab pipelines (the Automated tab in
+   Test Runs).
 5. **Manages test cases (TM).** Projects, suites, cases with steps, manual runs with results — Qase-style.
 
 The project is a fork of `playwright-reports-server`, reworked into Testboard. The storage layer, report
@@ -32,7 +33,7 @@ API routes  app/api/**/route.ts  (+ pages/api/result/upload.ts)
 Services / domain
    ├─ app/lib/service        reports and results, caches, cron, config
    ├─ app/lib/tm             test management (repositories over SQLite)
-   ├─ app/lib/ai, notifications, drone, analytics, parser
+   ├─ app/lib/ai, notifications, gitlab, autotests, analytics, parser
    ▼
 Storage
    ├─ app/lib/storage        Storage interface: FS | S3 | Azure (env DATA_STORAGE)
@@ -128,15 +129,15 @@ Key decisions:
 
 ### 3.7 Integrations
 
-| Integration            | Module                  | Enabled when                                                          |
-| ---------------------- | ----------------------- | --------------------------------------------------------------------- |
-| Anthropic (AI summary) | `app/lib/ai`            | `ANTHROPIC_API_KEY` is set; has a circuit breaker and a prompt budget |
-| Slack / webhook        | `app/lib/notifications` | channels are configured in Settings                                   |
-| Drone CI               | `app/lib/drone.ts`      | `DRONE_SERVER`, `DRONE_TOKEN`, `DRONE_AUTOTESTS_REPO` are set         |
+| Integration            | Module                                   | Enabled when                                                          |
+| ---------------------- | ---------------------------------------- | --------------------------------------------------------------------- |
+| Anthropic (AI summary) | `app/lib/ai`                             | `ANTHROPIC_API_KEY` is set; has a circuit breaker and a prompt budget |
+| Slack / webhook        | `app/lib/notifications`                  | channels are configured in Settings                                   |
+| GitLab (autotest runs) | `app/lib/gitlab.ts`, `app/lib/autotests` | `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_AUTOTESTS_PROJECT` are set      |
 
 ## 4. Main flows
 
-**Result upload:** CI calls `PUT /api/result/upload` (Pages router, Busboy, streamed without buffering).
+**Result upload:** the autotests' `@testboard/reporter` (or any HTTP client) calls `PUT /api/result/upload` (Pages router, Busboy, streamed without buffering).
 Then `service.saveResult` → storage → result metadata.
 
 **Report generation:** `POST /api/report/generate {resultsIds, project}` → `storage.generateReport`
@@ -153,8 +154,10 @@ Then `service.saveResult` → storage → result metadata.
 ## 5. Deployment
 
 - Docker image (`Dockerfile`): Next standalone. Host details: [deploy/README.md](../deploy/README.md).
-- `master` → Drone (`.drone.yml`) updates part of the host's `.env` from secrets and restarts via
-  `deploy/redeploy.sh`. The rest of `.env` is maintained by hand on the host.
+- `master` → GitLab CI (`.gitlab-ci.yml`) updates part of the host's `.env` from CI/CD variables and restarts
+  via `deploy/redeploy.sh`, then runs a health check. The rest of `.env` is maintained by hand on the host.
+- Tag `reporter-v<version>` → GitLab CI publishes `@testboard/reporter` (`packages/reporter`) to the
+  project's npm registry.
 - Data (`data/`) is a volume on the host. The test-management SQLite file lives there too, so backing up
   `data/` covers reports, settings and test cases.
 

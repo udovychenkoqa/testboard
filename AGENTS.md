@@ -4,7 +4,7 @@ Guide for AI coding agents (Claude Code, Codex, Cursor, …) and new contributor
 Read this first; the linked docs go deeper.
 
 Testboard is an internal QA dashboard: it stores Playwright results uploaded by CI, generates and serves
-HTML reports, shows trends, triggers autotest builds in Drone, and manages manual test cases and runs
+HTML reports, shows trends, runs the autotests' GitLab pipelines, and manages manual test cases and runs
 (Qase-style). Next.js 14 App Router + React 18 + HeroUI + Tailwind; data on disk/S3/Azure plus SQLite for
 test management. Node ≥ 22 (`.nvmrc`).
 
@@ -35,7 +35,7 @@ Before saying a change is done: `test:unit`, `tsc`, `lint` (no new errors) and, 
 - **Never** commit, print or paste secrets. `.env` holds real tokens; `.env.example` holds placeholders only.
   Mask `*_TOKEN`, `*_SECRET`, `*_KEY` values in any output.
 - **Never** push, merge into `master`, rewrite history or force-push without the owner asking. `master`
-  auto-deploys (`.drone.yml`).
+  auto-deploys (`.gitlab-ci.yml`).
 - Work on a branch (`feat/…`, `fix/…`), never directly on `master`.
 - Every user-visible string goes through `messages/en.json` **and** `messages/uk.json`. A unit test fails
   on hard-coded text in `app/**/*.tsx`.
