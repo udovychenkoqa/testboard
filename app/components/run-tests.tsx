@@ -179,7 +179,8 @@ const StartedBy: React.FC<{ build: BuildItem }> = ({ build }) => {
   );
 };
 
-export default function RunTests() {
+// `embedded`: rendered inside the Test Runs layout, which owns the page header.
+export default function RunTests({ embedded = false }: { embedded?: boolean } = {}) {
   const t = useTranslations('runTests');
   const tc = useTranslations('common');
   const session = useSession();
@@ -332,7 +333,7 @@ export default function RunTests() {
   if (data && !data.enabled) {
     return (
       <div className="flex flex-col rr-enter">
-        <PageHeader title={t('title')} />
+        {!embedded && <PageHeader title={t('title')} />}
         <div className="p-5">
           <EmptyState description={t('notConfiguredDescription')} icon={CirclePlay} title={t('notConfiguredTitle')} />
         </div>
@@ -342,7 +343,7 @@ export default function RunTests() {
 
   return (
     <div className="flex flex-col rr-enter">
-      <PageHeader title={t('title')} />
+      {!embedded && <PageHeader title={t('title')} />}
 
       <div className="flex flex-col gap-4 p-5">
         {/* Run parameters — one row: env / funnel / tag / run */}

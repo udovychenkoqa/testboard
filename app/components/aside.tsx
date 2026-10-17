@@ -4,7 +4,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import { FileText, FileBarChart, TrendingUp, CirclePlay, Settings, type LucideIcon } from 'lucide-react';
+import { FileText, FileBarChart, TrendingUp, CirclePlay, ListChecks, Settings, type LucideIcon } from 'lucide-react';
 
 import { useAuthConfig } from '../hooks/useAuthConfig';
 
@@ -24,7 +24,9 @@ interface BuildsResponse {
 
 interface NavEntry {
   href: string;
-  labelKey: 'reports' | 'results' | 'trends' | 'runTests';
+  labelKey: 'reports' | 'results' | 'trends' | 'testCases' | 'testRuns';
+  // Section prefix that keeps the item highlighted on its sub-pages.
+  section?: string;
   icon: LucideIcon;
 }
 
@@ -32,7 +34,8 @@ const NAV: NavEntry[] = [
   { href: '/reports', labelKey: 'reports', icon: FileText },
   { href: '/results', labelKey: 'results', icon: FileBarChart },
   { href: '/trends', labelKey: 'trends', icon: TrendingUp },
-  { href: '/run-tests', labelKey: 'runTests', icon: CirclePlay },
+  { href: '/cases', labelKey: 'testCases', icon: ListChecks, section: '/cases' },
+  { href: '/runs/manual', labelKey: 'testRuns', icon: CirclePlay, section: '/runs' },
 ];
 
 export const Aside: React.FC = () => {
@@ -53,7 +56,10 @@ export const Aside: React.FC = () => {
 
   const hasActiveBuild = !!builds?.builds?.some((b) => b.status === 'running' || b.status === 'pending');
   // Report detail highlights Reports.
-  const isActive = (href: string) => pathname === href || (href === '/reports' && !!pathname?.startsWith('/report/'));
+  const isActive = (href: string, section?: string) =>
+    pathname === href ||
+    (href === '/reports' && !!pathname?.startsWith('/report/')) ||
+    (!!section && !!pathname?.startsWith(section));
 
   const count = (href: string) =>
     href === '/reports' ? serverInfo?.numOfReports : href === '/results' ? serverInfo?.numOfResults : undefined;
@@ -68,8 +74,8 @@ export const Aside: React.FC = () => {
 
       {/* Nav */}
       <nav className="flex flex-col gap-0.5">
-        {NAV.map(({ href, labelKey, icon: Icon }) => {
-          const active = isActive(href);
+        {NAV.map(({ href, labelKey, icon: Icon, section }) => {
+          const active = isActive(href, section);
           const c = count(href);
 
           return (

@@ -19,9 +19,10 @@
     "reports": "Репорти",
     "results": "Результати",
     "trends": "Тренди",
-    "runTests": "Запуск тестів",
     "settings": "Налаштування",
-    "projects": "Проєкти"
+    "projects": "Проєкти",
+    "testCases": "Тест-кейси",
+    "testRuns": "Тест-прогони"
   },
   "userMenu": {
     "account": "Акаунт",
@@ -459,5 +460,12 @@
     "notFoundTitle": "Не знайдено",
     "serverTitle": "Не вдалося виконати запит",
     "unauthorized": "Сесія завершилась — увійдіть знову"
+  },
+  "tm": {
+    "runs": {
+      "title": "Тест-прогони",
+      "manual": "Ручні",
+      "automated": "Автоматичні"
+    }
   }
 }

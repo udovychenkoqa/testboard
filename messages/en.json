@@ -19,9 +19,10 @@
     "reports": "Reports",
     "results": "Results",
     "trends": "Trends",
-    "runTests": "Run Tests",
     "settings": "Settings",
-    "projects": "Projects"
+    "projects": "Projects",
+    "testCases": "Test Cases",
+    "testRuns": "Test Runs"
   },
   "userMenu": {
     "account": "Account",
@@ -459,5 +460,12 @@
     "notFoundTitle": "Not found",
     "serverTitle": "Request failed",
     "unauthorized": "Your session has ended — sign in again"
+  },
+  "tm": {
+    "runs": {
+      "title": "Test Runs",
+      "manual": "Manual",
+      "automated": "Automated"
+    }
   }
 }
