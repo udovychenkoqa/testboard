@@ -8,7 +8,7 @@ import { Segmented } from '@/app/components/ui/segmented';
 
 type Tab = 'manual' | 'automated';
 
-// Test Runs: manual runs (test management) and automated runs (Drone) share
+// Test Runs: manual runs (test management) and automated runs (GitLab pipelines) share
 // one page header with a tab switch.
 export default function RunsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const t = useTranslations('tm.runs');

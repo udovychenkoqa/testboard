@@ -243,22 +243,11 @@
   "runTests": {
     "title": "Запуск тестів",
     "notConfiguredTitle": "Запуск автотестів не налаштовано",
-    "notConfiguredDescription": "Задайте DRONE_SERVER, DRONE_TOKEN і DRONE_AUTOTESTS_REPO на сервері, щоб запускати автотести звідси.",
+    "notConfiguredDescription": "Задайте GITLAB_URL, GITLAB_TOKEN і GITLAB_AUTOTESTS_PROJECT на сервері, щоб запускати автотести звідси.",
     "environment": "Середовище",
-    "funnel": "Воронка",
-    "tag": "Tag / назва тесту",
+    "tag": "Тег",
     "run": "Запустити",
-    "abTest": "A/B-тест",
-    "abTestDescription": "Назва A/B-тесту",
-    "abTestPlaceholder": "напр. ab_pricing",
-    "variation": "Варіація",
-    "variationDescription": "Варіації через кому",
-    "country": "Країна",
-    "countryDescription": "Весь прогін через цю країну. Default — дефолтні локації.",
-    "countryDefault": "Default",
-    "usCa": "США — Каліфорнія",
-    "usNv": "США — Невада",
-    "advanced": "A/B та країна",
+    "advanced": "Додатково",
     "willRun": "Запуститься:",
     "cancel": "Скасувати",
     "recentRuns": "Останні прогони",
@@ -282,16 +271,29 @@
       "duration": "Тривалість"
     },
     "rerun": "Повторити прогін з тими ж параметрами",
-    "buildStarted": "Збірку #{number} запущено",
-    "openInDrone": "Відкрити в Drone",
+    "buildStarted": "Пайплайн #{number} запущено",
     "cancelled": "Прогін скасовано",
     "empty": {
       "noRunsTitle": "Прогонів ще не було",
-      "noRunsDescription": "Оберіть середовище й воронку вище та запустіть прогін — він з'явиться тут зі статусом у реальному часі.",
+      "noRunsDescription": "Оберіть середовище й режим вище та запустіть прогін — він з'явиться тут зі статусом у реальному часі.",
       "startFirst": "Запустити перший прогін",
       "noMatchTitle": "Нічого не знайдено",
       "noMatchDescription": "Жоден прогін на цій сторінці не відповідає фільтрам статусу, env чи «Тільки мої»."
-    }
+    },
+    "mode": "Режим",
+    "modes": {
+      "byTag": "За тегом",
+      "smoke": "Smoke",
+      "regression": "Регресія"
+    },
+    "qaseRunId": "Qase run ID",
+    "qaseRunIdDescription": "Звітувати в наявний прогін Qase. Порожньо — запуск лише за тегом.",
+    "qaseId": "ID кейсів Qase",
+    "qaseIdDescription": "Для генерації еталонних скріншотів, напр. 356,357.",
+    "forceSnapshots": "Перезібрати скріншоти, навіть якщо еталони є",
+    "skipVisual": "Пропустити візуальні перевірки",
+    "openInGitlab": "Відкрити в GitLab",
+    "rerunStarted": "Пайплайн #{number} запущено повторно"
   },
   "settings": {
     "page": {
@@ -454,7 +456,7 @@
   },
   "errors": {
     "unreachableTitle": "Не вдалося зв'язатися з зовнішнім сервісом",
-    "unreachableDescription": "Сервер зараз не може до нього під'єднатися (напр. Drone). Спробуйте пізніше.",
+    "unreachableDescription": "Сервер зараз не може до нього під'єднатися (напр. GitLab). Спробуйте пізніше.",
     "forbiddenTitle": "Немає доступу",
     "forbiddenDescription": "Ваша роль не дозволяє цю дію.",
     "notFoundTitle": "Не знайдено",

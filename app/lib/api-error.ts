@@ -9,7 +9,7 @@ export interface ApiErrorInfo {
 const MAX_DETAIL = 200;
 
 // Node's fetch/undici failures when the server can't reach an upstream
-// (Drone, Anthropic, …): DNS, refused connection, timeouts.
+// (GitLab, Anthropic, …): DNS, refused connection, timeouts.
 const UNREACHABLE = /fetch failed|ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|UND_ERR_CONNECT/i;
 
 const extractMessage = (body: string): string | undefined => {

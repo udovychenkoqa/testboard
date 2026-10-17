@@ -18,57 +18,36 @@ import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { useDateLabels } from '@/app/components/date-format';
 import { formatAgo } from '@/i18n/dates';
+import {
+  DEFAULT_INPUTS,
+  ENVIRONMENTS,
+  MODES,
+  TAG_PRESETS,
+  type Mode,
+  type TriggerInputs,
+} from '@/app/lib/autotests/inputs';
 
-const ENVIRONMENTS = ['test', 'dev', 'ft1', 'ft2', 'ft3', 'ft4', 'ft5', 'prod'];
-const TAG_PRESETS = ['@smoke', '@api'];
-// Country/locale codes = the autotests' proxy countryCodes (config/proxies.ts).
-// value is passed as LOCALE; '' = per-device default (no override).
-// Region codes render via Intl.DisplayNames in the UI language; US states
-// aren't regions there, so they have their own message keys.
-const COUNTRIES = [
-  '',
-  'US-CA',
-  'US-NV',
-  'GB',
-  'FR',
-  'DE',
-  'IT',
-  'ES',
-  'JP',
-  'PT',
-  'CY',
-  'UA',
-  'NL',
-  'CH',
-  'SE',
-  'NO',
-  'DK',
-  'BR',
-  'MX',
-  'CL',
-  'AR',
-  'CR',
-];
-const DEFAULTS = { environment: 'test', funnel: 'Hw1Vs5W', tag: '@smoke', abTest: '', abVariation: '', locale: '' };
 const PREFS_KEY = 'run-tests-prefs';
 
+// Message keys can't contain spaces, so the "by tag" mode gets a camelCase key.
+const MODE_KEY: Record<Mode, 'byTag' | 'smoke' | 'regression'> = {
+  'by tag': 'byTag',
+  smoke: 'smoke',
+  regression: 'regression',
+};
+
 interface BuildItem {
-  number: number;
+  id: number;
+  iid: number;
   status: string;
-  event: string;
-  message?: string;
-  sender?: string;
+  user?: string;
   startedBy?: string;
   viaCi?: boolean;
-  environment?: string;
-  funnel?: string;
-  tag?: string;
-  abTest?: string;
-  abVariation?: string;
-  locale?: string;
-  created: number;
-  started: number;
-  finished: number;
+  inputs?: Partial<TriggerInputs>;
+  createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+  duration?: number;
   link: string;
 }
 
@@ -92,7 +71,7 @@ const HISTORY_TEMPLATE = '80px 110px minmax(0,1fr) 190px 100px 80px 90px';
 
 const statusColor = (status: string): 'success' | 'danger' | 'warning' | 'default' => {
   if (status === 'success') return 'success';
-  if (status === 'failure' || status === 'error' || status === 'killed') return 'danger';
+  if (status === 'failure' || status === 'killed') return 'danger';
   if (status === 'running' || status === 'pending') return 'warning';
 
   return 'default';
@@ -116,11 +95,15 @@ const formatDuration = (seconds: number): string => {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 };
 
-// Params triggered via our UI arrive as ENVIRONMENT/FUNNEL/TAG. Render only
-// the ones present so old/CI builds without params don't show empty chips.
-const ParamChips: React.FC<{ build: BuildItem }> = ({ build }) => {
-  const ab = build.abTest ? `${build.abTest}${build.abVariation ? `:${build.abVariation}` : ''}` : undefined;
-  const parts = [build.environment, build.funnel, build.tag, build.locale, ab].filter(Boolean) as string[];
+// Inputs are known only for pipelines started from Testboard. Show env · mode · tag (the tag only when the
+// mode uses it) and nothing for pipelines started elsewhere.
+const ParamChips: React.FC<{ build: BuildItem; modeLabel: (mode: Mode) => string }> = ({ build, modeLabel }) => {
+  const inputs = build.inputs;
+  const parts = inputs
+    ? ([inputs.env, inputs.mode && modeLabel(inputs.mode), inputs.mode === 'by tag' ? inputs.tag : undefined].filter(
+        Boolean,
+      ) as string[])
+    : [];
 
   if (parts.length === 0) return <span className="text-default-400">—</span>;
 
@@ -156,11 +139,11 @@ const StatusCell: React.FC<{ status: string }> = ({ status }) => {
 };
 
 const StartedBy: React.FC<{ build: BuildItem }> = ({ build }) => {
-  // System/CI runs (triggered by the service token, no human) get a neutral
-  // badge instead of a person avatar — the token username is only a tooltip.
+  // Pipelines started outside Testboard (schedules, pushes, the GitLab UI) get a neutral badge; who started
+  // them in GitLab is only a tooltip.
   if (build.viaCi) {
     return (
-      <div className="flex items-center gap-2 min-w-0" title={build.sender}>
+      <div className="flex min-w-0 items-center gap-2" title={build.user}>
         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-default-100 text-default-500">
           <Settings size={12} />
         </span>
@@ -169,11 +152,11 @@ const StartedBy: React.FC<{ build: BuildItem }> = ({ build }) => {
     );
   }
 
-  const name = build.startedBy ?? build.sender ?? '—';
+  const name = build.startedBy ?? build.user ?? '—';
 
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <Avatar className="w-5 h-5 text-tiny shrink-0" name={name} />
+    <div className="flex min-w-0 items-center gap-2">
+      <Avatar className="h-5 w-5 shrink-0 text-tiny" name={name} />
       <span className="truncate text-[12.5px]">{name}</span>
     </div>
   );
@@ -185,14 +168,12 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const tc = useTranslations('common');
   const session = useSession();
   const currentUser = session.data?.user?.name ?? session.data?.user?.email ?? null;
+  const modeLabel = (mode: Mode) => t(`modes.${MODE_KEY[mode]}`);
 
-  const [environment, setEnvironment] = useState(DEFAULTS.environment);
-  const [funnel, setFunnel] = useState(DEFAULTS.funnel);
-  const [tag, setTag] = useState(DEFAULTS.tag);
-  const [abTest, setAbTest] = useState(DEFAULTS.abTest);
-  const [abVariation, setAbVariation] = useState(DEFAULTS.abVariation);
-  const [locale, setLocale] = useState(DEFAULTS.locale);
-  // A/B + country are used rarely — hidden behind a toggle to keep the form clean.
+  const [inputs, setInputs] = useState<TriggerInputs>(DEFAULT_INPUTS);
+  const set = <K extends keyof TriggerInputs>(key: K, value: TriggerInputs[K]) =>
+    setInputs((prev) => ({ ...prev, [key]: value }));
+  // The Qase and snapshot inputs are used rarely — hidden behind a toggle to keep the form clean.
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -201,19 +182,13 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const [envFilter, setEnvFilter] = useState<string>('all');
   const [mineOnly, setMineOnly] = useState(false);
 
-  // Restore last-used run parameters.
+  // Restore the last-used environment and mode. The tag and Qase ids are per-run, so they start fresh.
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
 
-      if (saved.environment) setEnvironment(saved.environment);
-      if (saved.funnel) setFunnel(saved.funnel);
-      // Tag intentionally NOT restored — always opens on the @smoke default.
-      if (saved.abTest) setAbTest(saved.abTest);
-      if (saved.abVariation) setAbVariation(saved.abVariation);
-      if (saved.locale) setLocale(saved.locale);
-      // Auto-expand the advanced block if any advanced param was last used.
-      if (saved.abTest || saved.abVariation || saved.locale) setShowAdvanced(true);
+      if (ENVIRONMENTS.includes(saved.env)) setInputs((prev) => ({ ...prev, env: saved.env }));
+      if (MODES.includes(saved.mode)) setInputs((prev) => ({ ...prev, mode: saved.mode }));
     } catch {
       /* ignore malformed prefs */
     }
@@ -231,14 +206,6 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   // active-run timer and relative times stay fresh without constant re-render.
   const [now, setNow] = useState(() => Date.now());
   const { intl, ago } = useDateLabels();
-  const regionNames = useMemo(() => new Intl.DisplayNames([intl], { type: 'region' }), [intl]);
-  const countryName = (code: string): string => {
-    if (!code) return t('countryDefault');
-    if (code === 'US-CA') return t('usCa');
-    if (code === 'US-NV') return t('usNv');
-
-    return regionNames.of(code) ?? code;
-  };
 
   useEffect(() => {
     if (activeBuilds.length === 0) return;
@@ -247,32 +214,30 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
     return () => clearInterval(id);
   }, [activeBuilds.length]);
 
-  const runWith = (params: {
-    environment: string;
-    funnel: string;
-    tag: string;
-    abTest?: string;
-    abVariation?: string;
-    locale?: string;
-  }) => {
-    try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify(params));
-    } catch {
-      /* ignore */
-    }
-    trigger({ body: params });
+  const onStarted = (messageKey: 'buildStarted' | 'rerunStarted') => (result: TriggerResponse) => {
+    setPage(1);
+    toast.success(t(messageKey, { number: result.build.iid }), {
+      action: { label: t('openInGitlab'), onClick: () => window.open(result.link, '_blank') },
+      duration: 10_000,
+    });
+    refetch();
   };
 
   const { mutate: trigger, isPending: isTriggering } = useMutation<TriggerResponse>('/api/autotests/trigger', {
-    onSuccess: (result) => {
-      setPage(1);
-      toast.success(t('buildStarted', { number: result.build.number }), {
-        action: { label: t('openInDrone'), onClick: () => window.open(result.link, '_blank') },
-        duration: 10_000,
-      });
-      refetch();
-    },
+    onSuccess: onStarted('buildStarted'),
   });
+  const { mutate: rerun } = useMutation<TriggerResponse>('/api/autotests/rerun', {
+    onSuccess: onStarted('rerunStarted'),
+  });
+
+  const run = () => {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ env: inputs.env, mode: inputs.mode }));
+    } catch {
+      /* ignore */
+    }
+    trigger({ body: inputs });
+  };
 
   const [cancelling, setCancelling] = useState<number | null>(null);
   const { mutate: cancel } = useMutation('/api/autotests/cancel', {
@@ -284,20 +249,17 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
     onError: () => setCancelling(null),
   });
 
-  const cancelBuild = (number: number) => {
-    setCancelling(number);
-    cancel({ body: { number } });
+  const cancelBuild = (id: number) => {
+    setCancelling(id);
+    cancel({ body: { id } });
   };
 
   const duration = (build: BuildItem): string => {
-    if (isActive(build.status) && build.started > 0) return formatDuration(Math.floor(now / 1000 - build.started));
-    // Killed/errored before actually running has finished === started (0s) —
-    // show a dash rather than a misleading "0s".
-    if (build.finished > 0 && build.started > 0 && build.finished > build.started) {
-      return formatDuration(build.finished - build.started);
+    if (isActive(build.status) && build.startedAt) {
+      return formatDuration(Math.max(0, Math.floor((now - Date.parse(build.startedAt)) / 1000)));
     }
 
-    return '—';
+    return build.duration ? formatDuration(Math.round(build.duration)) : '—';
   };
 
   // Apply filters to the current page.
@@ -305,8 +267,8 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
     if (statusFilter === 'running' && !isActive(b.status)) return false;
     if (statusFilter === 'failure' && statusColor(b.status) !== 'danger') return false;
     if (statusFilter === 'success' && b.status !== 'success') return false;
-    if (envFilter !== 'all' && b.environment !== envFilter) return false;
-    if (mineOnly && currentUser && (b.startedBy ?? b.sender) !== currentUser) return false;
+    if (envFilter !== 'all' && b.inputs?.env !== envFilter) return false;
+    if (mineOnly && currentUser && b.startedBy !== currentUser) return false;
 
     return true;
   });
@@ -314,11 +276,12 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const successCount = builds.filter((b) => b.status === 'success').length;
 
   // Live "what will run" summary for the footer.
-  const countryLabel = locale ? countryName(locale) : null;
-  const abSummary = abTest ? `${abTest}${abVariation ? `:${abVariation}` : ''}` : null;
-  const summaryParts = [environment, funnel || '—', tag || '—', locale ? countryLabel : null, abSummary].filter(
-    Boolean,
-  ) as string[];
+  const summaryParts = [
+    inputs.env,
+    modeLabel(inputs.mode),
+    inputs.mode === 'by tag' ? inputs.tag || '—' : null,
+    inputs.qase_run_id ? `Qase #${inputs.qase_run_id}` : null, // i18n-ignore — Qase is a product name
+  ].filter(Boolean) as string[];
 
   const gridColumns: GridColumn[] = [
     { key: 'build', label: t('columns.build') },
@@ -346,69 +309,81 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
       {!embedded && <PageHeader title={t('title')} />}
 
       <div className="flex flex-col gap-4 p-5">
-        {/* Run parameters — one row: env / funnel / tag / run */}
+        {/* Run inputs — one row: env / mode / tag / run */}
         <div className="rounded-lg border border-divider bg-content1">
           <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-[150px_1fr_1fr_auto] gap-3 items-end">
+            <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-[150px_170px_1fr_auto]">
               <Select
+                disallowEmptySelection
                 classNames={{ trigger: 'h-8 min-h-8' }}
                 label={t('environment')}
                 labelPlacement="outside"
-                selectedKeys={[environment]}
+                selectedKeys={[inputs.env]}
                 size="sm"
                 variant="bordered"
                 onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0];
+                  const value = Array.from(keys)[0] as TriggerInputs['env'] | undefined;
 
-                  if (typeof value === 'string') setEnvironment(value);
+                  if (value) set('env', value);
                 }}
               >
                 {ENVIRONMENTS.map((envName) => (
                   <SelectItem key={envName}>{envName}</SelectItem>
                 ))}
               </Select>
-              <Input
-                classNames={{ inputWrapper: 'h-8 min-h-8' }}
-                label={t('funnel')}
+              <Select
+                disallowEmptySelection
+                classNames={{ trigger: 'h-8 min-h-8' }}
+                label={t('mode')}
                 labelPlacement="outside"
+                selectedKeys={[inputs.mode]}
                 size="sm"
-                value={funnel}
                 variant="bordered"
-                onValueChange={setFunnel}
-              />
+                onSelectionChange={(keys) => {
+                  const value = Array.from(keys)[0] as Mode | undefined;
+
+                  if (value) set('mode', value);
+                }}
+              >
+                {MODES.map((mode) => (
+                  <SelectItem key={mode}>{modeLabel(mode)}</SelectItem>
+                ))}
+              </Select>
               <Input
                 classNames={{ inputWrapper: 'h-8 min-h-8' }}
-                endContent={
-                  <div className="flex gap-1">
+                description={
+                  <span className="flex flex-wrap items-center gap-1">
                     {TAG_PRESETS.map((preset) => (
                       <button
                         key={preset}
-                        className={`rounded-md px-1.5 py-0.5 font-mono text-[10.5px] transition-colors ${
-                          tag === preset
+                        className={`rounded-md px-1.5 py-0.5 font-mono text-[10.5px] transition-colors disabled:opacity-50 ${
+                          inputs.tag === preset
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-default-100 text-default-500 hover:bg-default-200'
                         }`}
+                        disabled={inputs.mode !== 'by tag'}
                         type="button"
-                        onClick={() => setTag(preset)}
+                        onClick={() => set('tag', preset)}
                       >
                         {preset}
                       </button>
                     ))}
-                  </div>
+                  </span>
                 }
+                isDisabled={inputs.mode !== 'by tag'}
                 label={t('tag')}
                 labelPlacement="outside"
                 size="sm"
-                value={tag}
+                value={inputs.tag}
                 variant="bordered"
-                onValueChange={setTag}
+                onValueChange={(value) => set('tag', value)}
               />
               <Button
-                className="h-8 px-5"
+                className="h-8 px-5 md:mt-6"
                 color="primary"
                 isLoading={isTriggering}
                 startContent={!isTriggering && <Play size={13} />}
-                onPress={() => runWith({ environment, funnel, tag, abTest, abVariation, locale })}
+                onPress={run}
               >
                 {t('run')}
               </Button>
@@ -416,54 +391,51 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
 
             {showAdvanced && (
               <div className="mt-3 rounded-lg border border-dashed border-default-300 bg-default-50 p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+                <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
                   <Input
                     classNames={{ inputWrapper: 'h-8 min-h-8' }}
-                    description={t('abTestDescription')}
-                    label={t('abTest')}
+                    description={t('qaseRunIdDescription')}
+                    inputMode="numeric"
+                    label={t('qaseRunId')}
                     labelPlacement="outside"
-                    placeholder={t('abTestPlaceholder')}
+                    placeholder="1234" // i18n-ignore — example value
                     size="sm"
-                    value={abTest}
+                    value={inputs.qase_run_id}
                     variant="bordered"
-                    onValueChange={setAbTest}
+                    onValueChange={(value) => set('qase_run_id', value.replace(/\D/g, ''))}
                   />
                   <Input
                     classNames={{ inputWrapper: 'h-8 min-h-8' }}
-                    description={t('variationDescription')}
-                    label={t('variation')}
+                    description={t('qaseIdDescription')}
+                    label={t('qaseId')}
                     labelPlacement="outside"
-                    placeholder="v0,v1" // i18n-ignore — example value
+                    placeholder="356, 357" // i18n-ignore — example value
                     size="sm"
-                    value={abVariation}
+                    value={inputs.qase_id}
                     variant="bordered"
-                    onValueChange={setAbVariation}
+                    onValueChange={(value) => set('qase_id', value.replace(/[^\d,\s]/g, ''))}
                   />
-                  <Select
-                    classNames={{ trigger: 'h-8 min-h-8' }}
-                    description={t('countryDescription')}
-                    label={t('country')}
-                    labelPlacement="outside"
-                    selectedKeys={[locale]}
+                  <Switch
+                    isSelected={inputs.skip_visual_checks}
                     size="sm"
-                    variant="bordered"
-                    onSelectionChange={(keys) => {
-                      const value = Array.from(keys)[0];
-
-                      if (typeof value === 'string') setLocale(value);
-                    }}
+                    onValueChange={(value) => set('skip_visual_checks', value)}
                   >
-                    {COUNTRIES.map((code) => (
-                      <SelectItem key={code}>{countryName(code)}</SelectItem>
-                    ))}
-                  </Select>
+                    <span className="text-[12.5px]">{t('skipVisual')}</span>
+                  </Switch>
+                  <Switch
+                    isSelected={inputs.force_snapshots_recollection}
+                    size="sm"
+                    onValueChange={(value) => set('force_snapshots_recollection', value)}
+                  >
+                    <span className="text-[12.5px]">{t('forceSnapshots')}</span>
+                  </Switch>
                 </div>
               </div>
             )}
           </div>
 
           {/* Footer: advanced trigger + live "what will run" summary */}
-          <div className="flex items-center justify-between gap-4 flex-wrap border-t border-divider px-4 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-divider px-4 py-2.5">
             <button
               className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary"
               type="button"
@@ -472,12 +444,12 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
               {t('advanced')}
               <ChevronDown className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} size={13} />
             </button>
-            <div className="flex items-center gap-1.5 flex-wrap text-[11.5px] text-default-400">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-default-400">
               {t('willRun')}
               {summaryParts.map((part, i) => (
                 <span
                   key={i}
-                  className="rounded-md border border-divider bg-default-100 px-1.5 py-0.5 font-mono text-[11px] text-foreground tabular-nums"
+                  className="rounded-md border border-divider bg-default-100 px-1.5 py-0.5 font-mono text-[11px] tabular-nums text-foreground"
                 >
                   {part}
                 </span>
@@ -486,27 +458,27 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
           </div>
         </div>
 
-        {/* Active run — slim strip per build */}
+        {/* Active run — slim strip per pipeline */}
         {activeBuilds.map((build) => (
           <div
-            key={build.number}
+            key={build.id}
             className="rr-enter flex h-11 items-center gap-3 rounded-lg border border-warning-300 bg-warning-50 px-4 dark:bg-warning-50/10"
           >
             <Spinner color="warning" size="sm" />
             <Link isExternal showAnchorIcon className="font-mono text-[12.5px]" href={build.link} size="sm">
-              #{build.number}
+              #{build.iid}
             </Link>
             <span className="text-[12.5px] text-warning-700 dark:text-warning-400">{build.status}</span>
-            <span className="font-mono text-[11.5px] text-default-500 tabular-nums">{duration(build)}</span>
+            <span className="font-mono text-[11.5px] tabular-nums text-default-500">{duration(build)}</span>
             <div className="min-w-0 flex-1 truncate">
-              <ParamChips build={build} />
+              <ParamChips build={build} modeLabel={modeLabel} />
             </div>
             <Button
               color="danger"
-              isLoading={cancelling === build.number}
+              isLoading={cancelling === build.id}
               size="sm"
               variant="flat"
-              onPress={() => cancelBuild(build.number)}
+              onPress={() => cancelBuild(build.id)}
             >
               {t('cancel')}
             </Button>
@@ -515,9 +487,9 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
 
         {/* History */}
         <div className="rounded-lg border border-divider bg-content1">
-          <div className="flex items-center justify-between gap-3 flex-wrap border-b border-divider px-4 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider px-4 py-2.5">
             <span className="text-[12.5px] font-medium">{t('recentRuns')}</span>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               <Segmented
                 options={STATUS_FILTERS.map((key) => ({ key, label: t(`status.${key}`) }))}
                 value={statusFilter}
@@ -558,12 +530,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
           ) : builds.length === 0 ? (
             <EmptyState
               action={
-                <Button
-                  color="primary"
-                  isLoading={isTriggering}
-                  size="sm"
-                  onPress={() => runWith({ environment, funnel, tag, abTest, abVariation, locale })}
-                >
+                <Button color="primary" isLoading={isTriggering} size="sm" onPress={run}>
                   {t('empty.startFirst')}
                 </Button>
               }
@@ -594,60 +561,51 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
             <DataGrid columns={gridColumns} template={HISTORY_TEMPLATE}>
               {filtered.map((build) => (
                 <GridRow
-                  key={build.number}
+                  key={build.id}
                   accent={statusHex(statusColor(build.status))}
                   className="h-11"
                   template={HISTORY_TEMPLATE}
                 >
                   <Link isExternal showAnchorIcon className="font-mono text-[12px]" href={build.link} size="sm">
-                    #{build.number}
+                    #{build.iid}
                   </Link>
                   <StatusCell status={build.status} />
                   <div className="min-w-0 pr-2">
-                    <ParamChips build={build} />
+                    <ParamChips build={build} modeLabel={modeLabel} />
                   </div>
                   <StartedBy build={build} />
                   <span
                     className="truncate text-[11.5px] text-default-500"
-                    title={new Date(build.created * 1000).toLocaleString(intl)}
+                    title={new Date(build.createdAt).toLocaleString(intl)}
                   >
-                    {formatAgo(new Date(build.created * 1000), ago, new Date(now))}
+                    {formatAgo(new Date(build.createdAt), ago, new Date(now))}
                   </span>
-                  <span className="text-right font-mono text-[11.5px] text-default-500 tabular-nums">
+                  <span className="text-right font-mono text-[11.5px] tabular-nums text-default-500">
                     {duration(build)}
                   </span>
                   <div className="flex justify-end">
                     {isActive(build.status) ? (
                       <Button
                         color="danger"
-                        isLoading={cancelling === build.number}
+                        isLoading={cancelling === build.id}
                         size="sm"
                         variant="flat"
-                        onPress={() => cancelBuild(build.number)}
+                        onPress={() => cancelBuild(build.id)}
                       >
                         {t('cancel')}
                       </Button>
-                    ) : build.environment || build.funnel || build.tag ? (
+                    ) : (
                       <Button
                         isIconOnly
-                        aria-label="Re-run"
+                        aria-label={t('rerun')}
                         size="sm"
                         title={t('rerun')}
                         variant="flat"
-                        onPress={() =>
-                          runWith({
-                            environment: build.environment ?? DEFAULTS.environment,
-                            funnel: build.funnel ?? DEFAULTS.funnel,
-                            tag: build.tag ?? DEFAULTS.tag,
-                            abTest: build.abTest,
-                            abVariation: build.abVariation,
-                            locale: build.locale,
-                          })
-                        }
+                        onPress={() => rerun({ body: { id: build.id } })}
                       >
                         <RotateCw size={14} />
                       </Button>
-                    ) : null}
+                    )}
                   </div>
                 </GridRow>
               ))}
