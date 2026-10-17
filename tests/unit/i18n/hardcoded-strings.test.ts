@@ -16,7 +16,7 @@ const TRANSLATED_FILES = listUiFiles(path.join(process.cwd(), 'app'));
 
 // Proper nouns and code-ish tokens that stay as-is in both languages.
 const ALLOWED =
-  /^(Testboard|Playwright|Slack|Webhook|admin|viewer|admin · env|Google|Drone|Cron|Haiku|Sonnet|Opus|API|URL|JSON|CI|ZIP|PDF|HTML|EN|UK|env|cron|[0-9%.:·—–\-\s]+)$/;
+  /^(Testboard|Playwright|Slack|Webhook|admin|tester|viewer|admin · env|Google|Drone|Cron|Haiku|Sonnet|Opus|API|URL|JSON|CI|ZIP|PDF|HTML|EN|UK|env|cron|[0-9%.:·—–\-\s]+)$/;
 
 // JSX text never contains code punctuation; that keeps `=>` … `<` spans in
 // arrow functions from reading as markup.

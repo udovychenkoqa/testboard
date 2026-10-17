@@ -6,6 +6,8 @@
 
 export const ROLES = {
   admin: 'admin',
+  // Writes test cases and works through manual runs; no Settings access.
+  tester: 'tester',
   viewer: 'viewer',
 } as const;
 
@@ -17,7 +19,7 @@ export type Role = string;
 // Roles offered in the admin UI dropdown. Only 'admin' is privileged; 'viewer'
 // is read-only. (More labels could be added here, but they'd all behave as
 // viewer since only 'admin' grants access.)
-export const ASSIGNABLE_ROLES = ['admin', 'viewer'] as const;
+export const ASSIGNABLE_ROLES = ['admin', 'tester', 'viewer'] as const;
 
 // The role a signed-in but unassigned allowed-domain user gets by default.
 export const DEFAULT_ROLE: Role = ROLES.viewer;
@@ -33,6 +35,8 @@ export const CAPABILITIES = {
   manageReports: 'manage:reports',
   // Server/notification/AI settings (POST /api/config, /api/access).
   manageSettings: 'manage:settings',
+  // Test management writes: projects, suites, cases, runs and their results.
+  manageCases: 'manage:cases',
 } as const;
 
 export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
@@ -44,6 +48,8 @@ export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
 // do everything else: view, run tests, delete, regenerate AI.
 export const can = (role: Role | null | undefined, capability: Capability): boolean => {
   if (role === ROLES.admin) return true;
+  // Unlike the rest, test management is closed to viewers and free-form labels.
+  if (capability === CAPABILITIES.manageCases) return role === ROLES.tester;
 
   return !!role && capability !== CAPABILITIES.manageSettings;
 };
@@ -105,6 +111,7 @@ const ADMIN_ROUTES: AdminRoute[] = [
 ];
 
 export const requiredCapability = (pathname: string, method: string): Capability => {
+  if (pathname.includes('/api/tm/')) return method === 'GET' ? CAPABILITIES.view : CAPABILITIES.manageCases;
   const match = ADMIN_ROUTES.find((route) => route.method === method && pathname.endsWith(route.suffix));
 
   if (!match) return CAPABILITIES.view;
