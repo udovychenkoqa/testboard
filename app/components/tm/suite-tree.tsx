@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, Folder, Layers, MoreHorizontal } from 'lucide-react';
 
 import { CASE_DRAG_TYPE } from '@/app/lib/tm/constants';
+import { afterMenuCloses } from '@/app/lib/after-menu-closes';
 
 interface SuiteTreeProps {
   suites: SuiteNode[];
@@ -119,7 +120,9 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
             <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{suite.caseCount}</span>
           </button>
           {canEdit && (
-            <Dropdown placement="bottom-end" shouldBlockScroll={false}>
+            // HeroUI 2.7 restarts the menu's open animation when it repositions (~300 ms in) and on close, so
+            // the menu flashed; without the animation it appears in place.
+            <Dropdown disableAnimation placement="bottom-end" shouldBlockScroll={false}>
               <DropdownTrigger>
                 <button
                   aria-label={t('common.edit')}
@@ -129,14 +132,20 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
                   <MoreHorizontal size={14} />
                 </button>
               </DropdownTrigger>
-              <DropdownMenu aria-label={suite.name}>
-                <DropdownItem key="add" onPress={() => onAddChild(suite.id)}>
-                  {t('cases.subSuite')}
-                </DropdownItem>
-                <DropdownItem key="rename" onPress={() => onRename(suite)}>
-                  {t('common.rename')}
-                </DropdownItem>
-                <DropdownItem key="delete" className="text-danger" color="danger" onPress={() => onDelete(suite)}>
+              <DropdownMenu
+                aria-label={suite.name}
+                onAction={(key) =>
+                  // onAction, not an item's onPress: with animations off the menu unmounts before a press ends.
+                  afterMenuCloses(() => {
+                    if (key === 'add') onAddChild(suite.id);
+                    else if (key === 'rename') onRename(suite);
+                    else if (key === 'delete') onDelete(suite);
+                  })
+                }
+              >
+                <DropdownItem key="add">{t('cases.subSuite')}</DropdownItem>
+                <DropdownItem key="rename">{t('common.rename')}</DropdownItem>
+                <DropdownItem key="delete" className="text-danger" color="danger">
                   {t('common.delete')}
                 </DropdownItem>
               </DropdownMenu>
