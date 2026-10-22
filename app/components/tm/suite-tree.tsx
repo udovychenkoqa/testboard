@@ -22,19 +22,14 @@ interface SuiteTreeProps {
   onDropCases?: (suiteId: number, caseIds: number[]) => void;
 }
 
-// Case count of a suite including everything nested under it.
-const totals = (suites: SuiteNode[]) => {
+// Counts next to each suite are its own cases only (like Qase): a total that included sub-suites made a case
+// moved into a sub-suite look like it sat in both.
+const childrenOf = (suites: SuiteNode[]) => {
   const children = new Map<number | null, SuiteNode[]>();
 
   for (const s of suites) children.set(s.parentId, [...(children.get(s.parentId) ?? []), s]);
-  const memo = new Map<number, number>();
-  const total = (s: SuiteNode): number => {
-    if (!memo.has(s.id)) memo.set(s.id, s.caseCount + (children.get(s.id) ?? []).reduce((n, c) => n + total(c), 0));
 
-    return memo.get(s.id)!;
-  };
-
-  return { children, total };
+  return children;
 };
 
 export const SuiteTree: React.FC<SuiteTreeProps> = ({
@@ -77,7 +72,7 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
           },
         }
       : {};
-  const { children, total } = useMemo(() => totals(suites), [suites]);
+  const children = useMemo(() => childrenOf(suites), [suites]);
 
   const toggle = (id: number) =>
     setCollapsed((prev) => {
@@ -121,7 +116,7 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
           >
             <Folder className="shrink-0" size={13} />
             <span className="truncate">{suite.name}</span>
-            <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{total(suite)}</span>
+            <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{suite.caseCount}</span>
           </button>
           {canEdit && (
             <Dropdown placement="bottom-end">

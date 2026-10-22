@@ -15,6 +15,8 @@ interface CaseListProps {
   cases: CaseListItem[];
   // Used to group the list under suite headers when it spans more than one suite.
   suites: SuiteNode[];
+  // The suite picked in the tree (null = all cases); its own cases need no header.
+  selectedSuiteId: number | null;
   selected: Set<number>;
   activeId: number | null;
   canEdit: boolean;
@@ -26,6 +28,7 @@ interface CaseListProps {
 export const CaseList: React.FC<CaseListProps> = ({
   cases,
   suites,
+  selectedSuiteId,
   selected,
   activeId,
   canEdit,
@@ -70,7 +73,7 @@ export const CaseList: React.FC<CaseListProps> = ({
       )}
       {groups.map((group) => (
         <Fragment key={group.suiteId}>
-          {groups.length > 1 && (
+          {(groups.length > 1 || group.suiteId !== selectedSuiteId) && (
             <li className="bg-default-50 px-3 py-1.5 text-[11.5px] font-medium text-default-500">{group.path}</li>
           )}
           {group.cases.map((c) => (

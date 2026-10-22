@@ -256,6 +256,7 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
               canEdit={canEdit}
               cases={cases}
               selected={selected}
+              selectedSuiteId={suiteId}
               suites={suites}
               onOpen={(caseId) => setPanel({ kind: 'edit', caseId })}
               onToggle={(id) =>

@@ -106,14 +106,17 @@ test.describe('test management', () => {
     await api('/api/tm/projects', { key, name: `DnD ${key}`, code: 'DND' });
     const from = await api(`/api/tm/projects/${key}/suites`, { name: 'Inbox' });
 
-    await api(`/api/tm/projects/${key}/suites`, { name: 'Target' });
+    const target = await api(`/api/tm/projects/${key}/suites`, { name: 'Target' });
+
+    await api(`/api/tm/projects/${key}/suites`, { name: 'Nested', parentId: target.id });
     await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'First to move' });
     await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'Second to move' });
     await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'Stays put' });
 
     await page.goto(`/cases/${key}`);
     const tree = page.getByRole('navigation', { name: 'Suite' });
-    const suite = (name: string) => tree.locator('li', { hasText: name }).first();
+    // The suite's own row (its <li> also wraps the sub-suites).
+    const suite = (name: string) => tree.locator('li > div', { hasText: name }).last();
 
     // One case dragged alone, while looking at the source suite: it leaves this list and shows up only in the target.
     await suite('Inbox').getByText('Inbox').click();
@@ -133,6 +136,22 @@ test.describe('test management', () => {
     await page.getByText('Second to move').dragTo(suite('Target'));
     await expect(suite('Target')).toContainText('2');
     await expect(suite('Inbox')).toContainText('1');
+
+    // Counts are per suite: moving a case into a sub-suite takes it off the parent's number.
+    await page.getByText('Stays put').dragTo(suite('Nested'));
+    await expect(suite('Nested')).toContainText('1');
+    await expect(suite('Target')).toContainText('2');
+    await expect(suite('Inbox')).toContainText('0');
+
+    // Everything goes into the sub-suite; looking at the parent, the cases still sit under the sub-suite's
+    // header, so they don't read as the parent's own.
+    await suite('Target').getByText('Target').click();
+    await page.getByRole('listitem').filter({ hasText: 'First to move' }).getByRole('checkbox').check();
+    await page.getByRole('listitem').filter({ hasText: 'Second to move' }).getByRole('checkbox').check();
+    await page.getByText('First to move').dragTo(suite('Nested'));
+    await expect(suite('Nested')).toContainText('3');
+    await expect(suite('Target')).toContainText('0');
+    await expect(page.getByRole('listitem').filter({ hasText: 'Target / Nested' })).toBeVisible();
   });
 
   test('renaming a project keeps its key and code', async ({ page, request }) => {
