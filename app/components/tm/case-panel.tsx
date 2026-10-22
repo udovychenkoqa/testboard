@@ -222,7 +222,15 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
   );
 
   return (
-    <Drawer isOpen={mode !== null} size="xl" onOpenChange={(open) => !open && onClose()}>
+    <Drawer
+      // No dimmed backdrop: fading a 50% black layer over the whole page read as the site blinking on every
+      // open/close. The panel's own shadow and border separate it; clicking outside still closes it.
+      backdrop="transparent"
+      classNames={{ base: 'border-l border-divider shadow-2xl' }}
+      isOpen={mode !== null}
+      size="xl"
+      onOpenChange={(open) => !open && onClose()}
+    >
       <DrawerContent>
         <DrawerHeader className="flex flex-col gap-0.5">
           <span className="font-mono text-[12px] font-normal text-default-400">

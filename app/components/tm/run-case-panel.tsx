@@ -75,7 +75,15 @@ export const RunCasePanel: React.FC<RunCasePanelProps> = ({
     runCase?.assignee && !assignees.includes(runCase.assignee) ? [...assignees, runCase.assignee] : assignees;
 
   return (
-    <Drawer isOpen={runCase !== null} size="xl" onOpenChange={(open) => !open && onClose()}>
+    <Drawer
+      // No dimmed backdrop: fading a 50% black layer over the whole page read as the site blinking on every
+      // open/close. The panel's own shadow and border separate it; clicking outside still closes it.
+      backdrop="transparent"
+      classNames={{ base: 'border-l border-divider shadow-2xl' }}
+      isOpen={runCase !== null}
+      size="xl"
+      onOpenChange={(open) => !open && onClose()}
+    >
       <DrawerContent>
         {runCase && snapshot && (
           <>
