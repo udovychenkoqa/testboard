@@ -9,7 +9,6 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Select,
   SelectItem,
   Switch,
 } from '@heroui/react';
@@ -18,6 +17,7 @@ import { toast } from 'sonner';
 import { Bell, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
+import { Select } from '@/app/components/ui/select';
 import { withBase } from '@/app/lib/url';
 import { SlackIcon } from '@/app/components/icons';
 import { BlockSkeleton } from '@/app/components/ui/skeletons';

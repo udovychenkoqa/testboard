@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Select, SelectItem, Avatar } from '@heroui/react';
+import { SelectItem, Avatar } from '@heroui/react';
 import { toast } from 'sonner';
 import { Users, Lock, Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
+import { Select } from '@/app/components/ui/select';
 import { withBase } from '@/app/lib/url';
 import { BlockSkeleton } from '@/app/components/ui/skeletons';
 

@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Avatar, Button, Input, Link, Pagination, Select, SelectItem, Spinner, Switch } from '@heroui/react';
+import { Avatar, Button, Input, Link, Pagination, SelectItem, Spinner, Switch } from '@heroui/react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { ChevronDown, Play, RotateCw, CirclePlay, SearchX, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
+import { Select } from '@/app/components/ui/select';
 import useQuery from '@/app/hooks/useQuery';
 import useMutation from '@/app/hooks/useMutation';
 import { STATUS_COLORS } from '@/app/lib/tailwind';

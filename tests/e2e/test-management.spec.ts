@@ -154,6 +154,54 @@ test.describe('test management', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'Target / Nested' })).toBeVisible();
   });
 
+  test('the suite menu adds a sub-suite', async ({ page, request }) => {
+    const key = `e2e-sub-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+
+    expect(
+      (await request.post('/api/tm/projects', { headers, data: { key, name: `Sub ${key}`, code: 'SUB' } })).ok(),
+    ).toBeTruthy();
+    expect(
+      (await request.post(`/api/tm/projects/${key}/suites`, { headers, data: { name: 'Parent' } })).ok(),
+    ).toBeTruthy();
+
+    await page.goto(`/cases/${key}`);
+    const tree = page.getByRole('navigation', { name: 'Suite' });
+    const parentRow = tree.locator('li > div', { hasText: 'Parent' });
+
+    await parentRow.hover();
+    await parentRow.getByRole('button', { name: 'Edit' }).click();
+    await page.getByRole('menuitem', { name: 'Add sub-suite' }).click();
+
+    const dialog = page.getByRole('dialog');
+
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel('Name').fill('Child');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(tree.locator('li > div', { hasText: 'Child' })).toBeVisible();
+  });
+
+  test('a select picks a value (case priority)', async ({ page, request }) => {
+    const key = `e2e-sel-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+
+    expect(
+      (await request.post('/api/tm/projects', { headers, data: { key, name: `Sel ${key}`, code: 'SEL' } })).ok(),
+    ).toBeTruthy();
+    expect((await request.post(`/api/tm/projects/${key}/suites`, { headers, data: { name: 'S' } })).ok()).toBeTruthy();
+
+    await page.goto(`/cases/${key}`);
+    await page.getByRole('button', { name: 'New case' }).first().click();
+    const drawer = page.getByRole('dialog');
+
+    await drawer.getByLabel('Title').fill('Priority pick');
+    await drawer.getByRole('button', { name: /Priority/ }).click();
+    await page.getByRole('option', { name: 'High' }).click();
+    await expect(drawer.getByRole('button', { name: /Priority/ })).toContainText('High');
+    await drawer.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: 'Priority pick' })).toContainText('High');
+  });
+
   test('renaming a project keeps its key and code', async ({ page, request }) => {
     const key = `e2e-ren-${String(Date.now()).slice(-6)}`;
 

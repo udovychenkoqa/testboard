@@ -12,7 +12,6 @@ import {
   DrawerFooter,
   DrawerHeader,
   Input,
-  Select,
   SelectItem,
   Textarea,
 } from '@heroui/react';
@@ -20,6 +19,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Select } from '@/app/components/ui/select';
 import { applyTag, suggestTags } from '@/app/lib/tm/tag-suggestions';
 import FormattedDate from '@/app/components/date-format';
 import useQuery from '@/app/hooks/useQuery';

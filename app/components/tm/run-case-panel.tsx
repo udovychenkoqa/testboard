@@ -11,13 +11,13 @@ import {
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  Select,
   SelectItem,
   Textarea,
 } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { Ban, Check, ChevronRight, SkipForward, X } from 'lucide-react';
 
+import { Select } from '@/app/components/ui/select';
 import FormattedDate from '@/app/components/date-format';
 import { ResultBadge } from '@/app/components/tm/result';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
