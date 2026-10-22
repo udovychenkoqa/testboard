@@ -92,6 +92,49 @@ test.describe('test management', () => {
     expect(errors).toEqual([]);
   });
 
+  test('dragging cases onto a suite moves them there', async ({ page, request }) => {
+    const key = `e2e-dnd-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+    const api = async (path: string, data: unknown) => {
+      const res = await request.post(path, { headers, data });
+
+      expect(res.ok(), await res.text()).toBeTruthy();
+
+      return res.json();
+    };
+
+    await api('/api/tm/projects', { key, name: `DnD ${key}`, code: 'DND' });
+    const from = await api(`/api/tm/projects/${key}/suites`, { name: 'Inbox' });
+
+    await api(`/api/tm/projects/${key}/suites`, { name: 'Target' });
+    await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'First to move' });
+    await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'Second to move' });
+    await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'Stays put' });
+
+    await page.goto(`/cases/${key}`);
+    const tree = page.getByRole('navigation', { name: 'Suite' });
+    const suite = (name: string) => tree.locator('li', { hasText: name }).first();
+
+    // One case dragged alone, while looking at the source suite: it leaves this list and shows up only in the target.
+    await suite('Inbox').getByText('Inbox').click();
+    await expect(page.getByText('Stays put')).toBeVisible();
+    await page.getByText('First to move').dragTo(suite('Target'));
+    await expect(page.getByText('First to move')).toHaveCount(0);
+    await suite('Target').getByText('Target').click();
+    await expect(page.getByText('First to move')).toHaveCount(1);
+    await expect(page.getByText('Stays put')).toHaveCount(0);
+    await suite('Inbox').getByText('Inbox').click();
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Cases moved' })).toBeVisible();
+    await expect(suite('Target')).toContainText('1');
+    await expect(suite('Inbox')).toContainText('2');
+
+    // A selected case drags the whole selection with it.
+    await page.getByRole('listitem').filter({ hasText: 'Second to move' }).getByRole('checkbox').check();
+    await page.getByText('Second to move').dragTo(suite('Target'));
+    await expect(suite('Target')).toContainText('2');
+    await expect(suite('Inbox')).toContainText('1');
+  });
+
   test('renaming a project keeps its key and code', async ({ page, request }) => {
     const key = `e2e-ren-${String(Date.now()).slice(-6)}`;
 

@@ -145,6 +145,14 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
             totalCount={totalCount}
             onAddChild={(parentId) => setNameDialog({ kind: 'create', parentId })}
             onDelete={(suite) => setConfirm({ kind: 'suite', suite })}
+            onDropCases={
+              canEdit
+                ? (target, ids) => {
+                    bulk.mutate({ body: { action: 'move', ids, suiteId: target } });
+                    toast.success(t('cases.moved'));
+                  }
+                : undefined
+            }
             onRename={(suite) => setNameDialog({ kind: 'rename', suite })}
             onSelect={setSuiteId}
           />
@@ -248,6 +256,7 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
               canEdit={canEdit}
               cases={cases}
               selected={selected}
+              suites={suites}
               onOpen={(caseId) => setPanel({ kind: 'edit', caseId })}
               onToggle={(id) =>
                 setSelected((prev) => {

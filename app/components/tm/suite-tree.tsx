@@ -7,6 +7,8 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/r
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, Folder, Layers, MoreHorizontal } from 'lucide-react';
 
+import { CASE_DRAG_TYPE } from '@/app/lib/tm/constants';
+
 interface SuiteTreeProps {
   suites: SuiteNode[];
   selectedId: number | null;
@@ -16,6 +18,8 @@ interface SuiteTreeProps {
   onAddChild: (parentId: number) => void;
   onRename: (suite: SuiteNode) => void;
   onDelete: (suite: SuiteNode) => void;
+  // Cases dropped onto a suite (see CaseList); only wired when the user can edit.
+  onDropCases?: (suiteId: number, caseIds: number[]) => void;
 }
 
 // Case count of a suite including everything nested under it.
@@ -42,9 +46,37 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
   onAddChild,
   onRename,
   onDelete,
+  onDropCases,
 }) => {
   const t = useTranslations('tm');
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
+
+  const dropProps = (suiteId: number) =>
+    onDropCases
+      ? {
+          onDragOver: (e: React.DragEvent) => {
+            if (!e.dataTransfer.types.includes(CASE_DRAG_TYPE)) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            setDropTarget(suiteId);
+          },
+          onDragLeave: (e: React.DragEvent) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropTarget(null);
+          },
+          onDrop: (e: React.DragEvent) => {
+            e.preventDefault();
+            setDropTarget(null);
+            try {
+              const ids = JSON.parse(e.dataTransfer.getData(CASE_DRAG_TYPE)) as number[];
+
+              if (ids.length) onDropCases(suiteId, ids);
+            } catch {
+              // not our payload
+            }
+          },
+        }
+      : {};
   const { children, total } = useMemo(() => totals(suites), [suites]);
 
   const toggle = (id: number) =>
@@ -57,7 +89,7 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
     });
 
   const row = (active: boolean) =>
-    `group flex h-8 items-center gap-1.5 rounded-lg pr-1 text-[12.5px] transition-colors ${
+    `group flex h-8 items-center gap-1.5 rounded-lg pr-1 text-[12.5px] transition-all ${
       active ? 'bg-primary/10 font-medium text-primary' : 'text-default-600 hover:bg-default-100'
     }`;
 
@@ -67,7 +99,13 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
 
     return (
       <li key={suite.id}>
-        <div className={row(selectedId === suite.id)} style={{ paddingLeft: 4 + depth * 14 }}>
+        <div
+          className={`${row(selectedId === suite.id)} ${
+            dropTarget === suite.id ? 'scale-[1.02] bg-primary/15 text-primary ring-2 ring-primary/60' : ''
+          }`}
+          style={{ paddingLeft: 4 + depth * 14 }}
+          {...dropProps(suite.id)}
+        >
           <button
             aria-label={suite.name}
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-default-400 ${kids.length ? '' : 'invisible'}`}

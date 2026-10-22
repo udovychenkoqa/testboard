@@ -615,7 +615,8 @@
       "caseDeleteConfirm": "Delete the selected cases? Past runs keep their results.",
       "caseCreated": "Case {label} created",
       "moved": "Cases moved",
-      "readOnly": "You can view test cases; editing needs the tester or admin role."
+      "readOnly": "You can view test cases; editing needs the tester or admin role.",
+      "dragCount": "{count, plural, one {# case} other {# cases}}"
     }
   }
 }
