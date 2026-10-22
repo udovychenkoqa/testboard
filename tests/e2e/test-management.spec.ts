@@ -67,7 +67,8 @@ test.describe('test management', () => {
 
     await runDialog.getByLabel('Run name').fill('Smoke');
     await runDialog.getByRole('button', { name: 'Create' }).click();
-    await expect(page).toHaveURL(/\/runs\/manual\/\d+$/);
+    // The app navigates to the new run's page, which `next dev` compiles on first visit — slow on a cold server.
+    await expect(page).toHaveURL(/\/runs\/manual\/\d+$/, { timeout: 60_000 });
     await expect(page.getByText('0 / 2 done')).toBeVisible();
 
     // Mark results; the panel moves on to the next untested case by itself.
