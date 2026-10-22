@@ -222,12 +222,14 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
   );
 
   return (
+    // No dimmed backdrop: fading a 50% black layer over the whole page read as the site blinking on every
+    // open/close; the panel's shadow and border separate it, and clicking outside still closes it. No scroll
+    // lock either: the page scrolls inside <main>, so locking <html> only toggled its overflow.
     <Drawer
-      // No dimmed backdrop: fading a 50% black layer over the whole page read as the site blinking on every
-      // open/close. The panel's own shadow and border separate it; clicking outside still closes it.
       backdrop="transparent"
       classNames={{ base: 'border-l border-divider shadow-2xl' }}
       isOpen={mode !== null}
+      shouldBlockScroll={false}
       size="xl"
       onOpenChange={(open) => !open && onClose()}
     >

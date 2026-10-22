@@ -119,7 +119,7 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
             <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{suite.caseCount}</span>
           </button>
           {canEdit && (
-            <Dropdown placement="bottom-end">
+            <Dropdown placement="bottom-end" shouldBlockScroll={false}>
               <DropdownTrigger>
                 <button
                   aria-label={t('common.edit')}
