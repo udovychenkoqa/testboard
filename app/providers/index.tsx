@@ -23,7 +23,10 @@ export const Providers: FC<ThemeProviderProps> = ({ children, ...themeProps }) =
   );
 
   return (
-    <HeroUIProvider>
+    // HeroUI 2.7 re-runs a popover's open animation from its first frame when the overlay repositions
+    // (~300 ms after opening) and again on close, so menus, selects and panels visibly flashed. Without the
+    // animations they appear and disappear in place.
+    <HeroUIProvider disableAnimation>
       <NextThemesProvider
         {...themeProps}
         // additional mapping to handle theme names from playwright trace view
