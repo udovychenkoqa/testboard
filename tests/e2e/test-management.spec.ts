@@ -91,6 +91,31 @@ test.describe('test management', () => {
     expect(errors).toEqual([]);
   });
 
+  test('renaming a project keeps its key and code', async ({ page, request }) => {
+    const key = `e2e-ren-${String(Date.now()).slice(-6)}`;
+
+    expect(
+      (
+        await request.post('/api/tm/projects', {
+          headers: { Authorization: E2E_API_TOKEN },
+          data: { key, name: `Old ${key}`, code: 'REN' },
+        })
+      ).ok(),
+    ).toBeTruthy();
+
+    await page.goto('/cases');
+    await page.locator('div.group', { hasText: key }).getByRole('button', { name: 'Rename' }).click();
+    const dialog = page.getByRole('dialog');
+
+    await dialog.getByRole('textbox').fill(`New ${key}`);
+    await dialog.getByRole('button', { name: 'Save' }).click();
+
+    const card = page.locator('div.group', { hasText: key });
+
+    await expect(card).toContainText(`New ${key}`);
+    await expect(card).toContainText('REN');
+  });
+
   test('deleting a project needs its key typed and removes it', async ({ page, request }) => {
     const key = `e2e-del-${String(Date.now()).slice(-6)}`;
 

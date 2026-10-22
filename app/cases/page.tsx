@@ -7,15 +7,18 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import { useTranslations } from 'next-intl';
-import { FolderKanban, Plus, Trash2 } from 'lucide-react';
+import { FolderKanban, Pencil, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { PageHeader } from '@/app/components/page-header';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { DeleteProjectModal } from '@/app/components/tm/delete-project-modal';
+import { NameModal } from '@/app/components/tm/name-modal';
 import { NewProjectModal } from '@/app/components/tm/new-project-modal';
 import useQuery from '@/app/hooks/useQuery';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
+import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { useTmProject } from '@/app/hooks/useTmProject';
 
 export default function TestCasesProjectsPage() {
@@ -25,6 +28,12 @@ export default function TestCasesProjectsPage() {
   const [, setProject] = useTmProject();
   const [isOpen, setIsOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ProjectSummary | null>(null);
+  const [toRename, setToRename] = useState<ProjectSummary | null>(null);
+  const tc = useTranslations('tm.common');
+  const rename = useTmMutation('/api/tm/projects', 'PATCH', () => {
+    setToRename(null);
+    toast.success(tc('saved'));
+  });
   const { data: projects, isPending } = useQuery<ProjectSummary[]>('/api/tm/projects');
 
   const open = (key: string) => {
@@ -94,17 +103,30 @@ export default function TestCasesProjectsPage() {
                   </div>
                 </NextLink>
                 {canEdit && (
-                  <Button
-                    isIconOnly
-                    aria-label={t('delete')}
-                    className="absolute bottom-3 right-3 text-default-400 hover:text-danger"
-                    size="sm"
-                    title={t('delete')}
-                    variant="light"
-                    onPress={() => setToDelete(p)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+                  <div className="absolute bottom-3 right-3 flex gap-0.5">
+                    <Button
+                      isIconOnly
+                      aria-label={tc('rename')}
+                      className="text-default-400 hover:text-foreground"
+                      size="sm"
+                      title={tc('rename')}
+                      variant="light"
+                      onPress={() => setToRename(p)}
+                    >
+                      <Pencil size={14} />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      aria-label={t('delete')}
+                      className="text-default-400 hover:text-danger"
+                      size="sm"
+                      title={t('delete')}
+                      variant="light"
+                      onPress={() => setToDelete(p)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 )}
               </div>
             ))}
@@ -112,6 +134,14 @@ export default function TestCasesProjectsPage() {
         )}
       </div>
       <DeleteProjectModal project={toDelete} onClose={() => setToDelete(null)} />
+      <NameModal
+        initial={toRename?.name ?? ''}
+        isOpen={toRename !== null}
+        isPending={rename.isPending}
+        title={tc('rename')}
+        onClose={() => setToRename(null)}
+        onSubmit={(name) => toRename && rename.mutate({ path: `/api/tm/projects/${toRename.key}`, body: { name } })}
+      />
       <NewProjectModal isOpen={isOpen} onClose={() => setIsOpen(false)} onCreated={(p) => open(p.key)} />
     </div>
   );
