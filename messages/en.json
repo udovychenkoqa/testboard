@@ -585,7 +585,12 @@
       "automated": "{percent}% automated",
       "emptyTitle": "No projects yet",
       "emptyDescription": "Create a project to start writing test cases.",
-      "created": "Project created"
+      "created": "Project created",
+      "delete": "Delete project",
+      "deleteTitle": "Delete “{name}”?",
+      "deleteWarning": "This permanently deletes the project with all its suites, {count, plural, one {# case} other {# cases}} and every run. This can’t be undone.",
+      "deleteConfirmLabel": "Type {key} to confirm",
+      "deleted": "Project “{name}” deleted"
     },
     "cases": {
       "back": "All projects",

@@ -110,19 +110,16 @@ export const updateProject = (db: TmDb, key: string, patch: { name?: string }): 
   return getProjectById(db, project.id);
 };
 
-// Only an empty project can go: cases (even soft-deleted) and runs are history.
+// Removes the project with everything in it: runs and their results, cases (steps and tags cascade),
+// suites. Irreversible — the UI makes the user type the project key first.
 export const deleteProject = (db: TmDb, key: string): void => {
-  const project = getProject(db, key);
-  const used = db
-    .prepare(
-      `SELECT (SELECT COUNT(*) FROM tm_cases WHERE project_id = ?) + (SELECT COUNT(*) FROM tm_runs WHERE project_id = ?) AS n`,
-    )
-    .get(project.id, project.id) as { n: number };
-
-  if (used.n > 0) throw new TmError('not_empty', 'project has cases or runs');
+  const { id } = getProject(db, key);
 
   db.transaction(() => {
-    db.prepare('DELETE FROM tm_suites WHERE project_id = ?').run(project.id);
-    db.prepare('DELETE FROM tm_projects WHERE id = ?').run(project.id);
+    db.prepare('DELETE FROM tm_run_cases WHERE run_id IN (SELECT id FROM tm_runs WHERE project_id = ?)').run(id);
+    db.prepare('DELETE FROM tm_runs WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM tm_cases WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM tm_suites WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM tm_projects WHERE id = ?').run(id);
   })();
 };

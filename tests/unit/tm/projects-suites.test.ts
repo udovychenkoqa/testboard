@@ -2,6 +2,8 @@ import { openDb, type TmDb } from '@/app/lib/tm/db';
 import { TmError } from '@/app/lib/tm/errors';
 import { createProject, deleteProject, getProject, listProjects, updateProject } from '@/app/lib/tm/projects';
 import { createSuite, deleteSuite, listSuites, updateSuite } from '@/app/lib/tm/suites';
+import { createCase } from '@/app/lib/tm/cases';
+import { createRun } from '@/app/lib/tm/runs';
 
 // Cases arrive in Task 4; raw rows are enough to test counts and cascades here.
 const insertCase = (db: TmDb, projectId: number, suiteId: number, number: number, automation = 'manual') =>
@@ -71,7 +73,33 @@ describe('projects', () => {
 
     expect(updateProject(db, 'hw', { name: 'Hanimax' }).name).toBe('Hanimax');
     insertCase(db, p.id, createSuite(db, { projectId: p.id, name: 'S' }).id, 1);
-    expect(code(() => deleteProject(db, 'hw'))).toBe('not_empty');
+  });
+
+  it('deletes a project with everything in it and leaves other projects alone', () => {
+    const hw = createProject(db, { key: 'hw', name: 'A', code: 'HW' });
+    const other = createProject(db, { key: 'other', name: 'B', code: 'OT' });
+    const parent = createSuite(db, { projectId: hw.id, name: 'Auth' });
+    const child = createSuite(db, { projectId: hw.id, name: 'Login', parentId: parent.id });
+    const kept = createSuite(db, { projectId: other.id, name: 'Kept' });
+
+    createCase(db, hw.id, { suiteId: child.id, title: 'c1', steps: [{ action: 'a', expected: 'e' }], tags: ['x'] }, 't');
+    createCase(db, hw.id, { suiteId: parent.id, title: 'c2' }, 't');
+    createCase(db, other.id, { suiteId: kept.id, title: 'stays', tags: ['x'] }, 't');
+    createRun(db, { projectId: hw.id, name: 'r', source: { type: 'all' }, by: 't' });
+    createRun(db, { projectId: other.id, name: 'r2', source: { type: 'all' }, by: 't' });
+
+    deleteProject(db, 'hw');
+
+    expect(code(() => getProject(db, 'hw'))).toBe('not_found');
+    const count = (table: string) => (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
+
+    expect(count('tm_suites')).toBe(1);
+    expect(count('tm_cases')).toBe(1);
+    expect(count('tm_case_steps')).toBe(0);
+    expect(count('tm_case_tags')).toBe(1);
+    expect(count('tm_runs')).toBe(1);
+    expect(count('tm_run_cases')).toBe(1);
+    expect(listProjects(db).map((p) => p.key)).toEqual(['other']);
   });
 
   it('deletes an empty project and reports unknown keys', () => {

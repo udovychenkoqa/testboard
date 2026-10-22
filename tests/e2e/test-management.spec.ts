@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { E2E_BASE_URL } from '../../playwright.config';
+import { E2E_API_TOKEN, E2E_BASE_URL } from '../../playwright.config';
 
 import { collectConsoleErrors, useLanguage } from './helpers';
 
@@ -89,6 +89,35 @@ test.describe('test management', () => {
     await expect(page.getByRole('link', { name: /Smoke/ })).toContainText('2 / 2 done');
 
     expect(errors).toEqual([]);
+  });
+
+  test('deleting a project needs its key typed and removes it', async ({ page, request }) => {
+    const key = `e2e-del-${String(Date.now()).slice(-6)}`;
+
+    expect(
+      (
+        await request.post('/api/tm/projects', {
+          headers: { Authorization: E2E_API_TOKEN },
+          data: { key, name: `Delete me ${key}`, code: 'DEL' },
+        })
+      ).ok(),
+    ).toBeTruthy();
+
+    await page.goto('/cases');
+    const card = page.locator('div.group', { hasText: key });
+
+    await card.getByRole('button', { name: 'Delete project' }).click();
+    const dialog = page.getByRole('dialog');
+    const confirm = dialog.getByRole('button', { name: 'Delete project' });
+
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole('textbox').fill('wrong-key');
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole('textbox').fill(key);
+    await confirm.click();
+
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'deleted' })).toBeVisible();
+    await expect(page.getByText(key, { exact: true })).toHaveCount(0);
   });
 
   test('a run that does not exist says so instead of loading forever', async ({ page }) => {
