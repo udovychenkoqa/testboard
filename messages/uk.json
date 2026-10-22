@@ -571,7 +571,8 @@
       "noSteps": "Кроків ще немає.",
       "moveUp": "Вище",
       "moveDown": "Нижче",
-      "removeStep": "Видалити крок"
+      "removeStep": "Видалити крок",
+      "tagSuggestions": "Наявні теги"
     },
     "projects": {
       "title": "Тест-кейси",

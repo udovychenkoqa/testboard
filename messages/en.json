@@ -571,7 +571,8 @@
       "noSteps": "No steps yet.",
       "moveUp": "Move up",
       "moveDown": "Move down",
-      "removeStep": "Remove step"
+      "removeStep": "Remove step",
+      "tagSuggestions": "Existing tags"
     },
     "projects": {
       "title": "Test Cases",

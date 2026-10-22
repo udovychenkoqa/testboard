@@ -1,6 +1,6 @@
 'use client';
 
-import type { CaseDetail, CaseInput, StepInput } from '@/app/lib/tm/cases';
+import type { CaseDetail, CaseInput, StepInput, TagUsage } from '@/app/lib/tm/cases';
 import type { SuiteNode } from '@/app/lib/tm/suites';
 
 import { useEffect, useState } from 'react';
@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { applyTag, suggestTags } from '@/app/lib/tm/tag-suggestions';
 import FormattedDate from '@/app/components/date-format';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
@@ -162,6 +163,12 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
     dependencies: [caseId],
   });
   const [form, setForm] = useState<Form | null>(null);
+  const [tagsFocused, setTagsFocused] = useState(false);
+  const { data: knownTags = [] } = useQuery<TagUsage[]>(`/api/tm/projects/${projectKey}/tags`, {
+    enabled: mode !== null && canEdit,
+    dependencies: [projectKey, mode],
+  });
+  const tagSuggestions = form ? suggestTags(form.tags, knownTags) : [];
 
   useEffect(() => {
     if (mode?.kind === 'new') setForm(emptyForm(mode.suiteId));
@@ -272,15 +279,37 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
                 onValueChange={(preconditions) => patch({ preconditions })}
               />
               <StepsEditor readOnly={readOnly} steps={form.steps} onChange={(steps) => patch({ steps })} />
-              <Input
-                description={t('fields.tagsHint')}
-                isReadOnly={readOnly}
-                label={t('fields.tags')}
-                labelPlacement="outside"
-                value={form.tags}
-                variant="bordered"
-                onValueChange={(tags) => patch({ tags })}
-              />
+              <div className="flex flex-col gap-1.5">
+                <Input
+                  description={t('fields.tagsHint')}
+                  isReadOnly={readOnly}
+                  label={t('fields.tags')}
+                  labelPlacement="outside"
+                  value={form.tags}
+                  variant="bordered"
+                  onBlur={() => setTagsFocused(false)}
+                  onFocus={() => setTagsFocused(true)}
+                  onValueChange={(tags) => patch({ tags })}
+                />
+                {!readOnly && tagsFocused && tagSuggestions.length > 0 && (
+                  <div aria-label={t('fields.tagSuggestions')} className="flex flex-wrap gap-1" role="group">
+                    {tagSuggestions.map((tag) => (
+                      <button
+                        key={tag}
+                        className="rounded-md bg-default-100 px-1.5 py-0.5 font-mono text-[11px] text-default-600 transition-colors hover:bg-primary/10 hover:text-primary"
+                        type="button"
+                        // mousedown, not click: keep the input focused so the list doesn't vanish before the click lands.
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          patch({ tags: applyTag(form.tags, tag) });
+                        }}
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {current && mode?.kind === 'edit' && (
                 <p className="text-[11.5px] text-default-400">
                   {t('cases.createdBy', { who: current.createdBy })} ·{' '}

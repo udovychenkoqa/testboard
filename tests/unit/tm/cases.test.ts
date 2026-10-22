@@ -2,7 +2,7 @@ import { openDb, type TmDb } from '@/app/lib/tm/db';
 import { TmError } from '@/app/lib/tm/errors';
 import { createProject } from '@/app/lib/tm/projects';
 import { createSuite } from '@/app/lib/tm/suites';
-import { createCase, deleteCases, getCase, listCases, moveCases, updateCase } from '@/app/lib/tm/cases';
+import { createCase, deleteCases, getCase, listCases, listTags, moveCases, updateCase } from '@/app/lib/tm/cases';
 
 let db: TmDb;
 let projectId: number;
@@ -124,5 +124,27 @@ describe('cases', () => {
       expect(titles({})).not.toContain('Sign in');
       expect(() => getCase(db, signIn.id)).toThrow(TmError);
     });
+  });
+});
+
+describe('listTags', () => {
+  it('lists the project tags with usage counts, most used first', () => {
+    createCase(db, projectId, { suiteId: login, title: 'a', tags: ['@smoke', '@new_upsell'] }, 't');
+    createCase(db, projectId, { suiteId: cart, title: 'b', tags: ['@smoke'] }, 't');
+    const gone = createCase(db, projectId, { suiteId: cart, title: 'c', tags: ['@deleted-only'] }, 't');
+    const other = createProject(db, { key: 'other', name: 'Other', code: 'OT' }).id;
+
+    createCase(
+      db,
+      other,
+      { suiteId: createSuite(db, { projectId: other, name: 'S' }).id, title: 'd', tags: ['@foreign'] },
+      't',
+    );
+    deleteCases(db, [gone.id]);
+
+    expect(listTags(db, projectId)).toEqual([
+      { tag: '@smoke', count: 2 },
+      { tag: '@new_upsell', count: 1 },
+    ]);
   });
 });

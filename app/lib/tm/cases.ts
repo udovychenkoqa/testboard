@@ -272,3 +272,17 @@ export const moveCases = (db: TmDb, ids: number[], suiteId: number): void => {
   checkSuite(db, projects[0].project_id, suiteId);
   db.prepare(`UPDATE tm_cases SET suite_id = ? WHERE id IN (${inList(ids)})`).run(suiteId, ...ids);
 };
+
+export interface TagUsage {
+  tag: string;
+  count: number;
+}
+
+// Tags already used on the project's live cases, most used first — suggestions for the tags field.
+export const listTags = (db: TmDb, projectId: number): TagUsage[] =>
+  db
+    .prepare(
+      `SELECT t.tag, COUNT(*) AS count FROM tm_case_tags t JOIN tm_cases c ON c.id = t.case_id
+       WHERE c.project_id = ? AND c.deleted_at IS NULL GROUP BY t.tag ORDER BY count DESC, t.tag`,
+    )
+    .all(projectId) as TagUsage[];
