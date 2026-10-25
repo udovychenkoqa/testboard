@@ -1,23 +1,25 @@
 // Role-based access model — a slimmed port of the upstream
 // (CyborgTests/playwright-reports-server) `packages/shared/src/access.ts`.
 // Framework-agnostic and env-free on purpose: usable from the edge middleware,
-// server routes, and client components alike. Two roles only (admin/viewer),
-// no SQLite/invites/audit — roles are assigned from env (see authFlags.ts).
+// server routes, and client components alike. Three roles (admin, tester,
+// viewer), no invites/audit — roles come from env (see authFlags.ts) and the
+// admin-managed map in config.json (see roleStore.ts).
 
 export const ROLES = {
   admin: 'admin',
+  // Writes test cases and works through manual runs; no Settings access.
+  tester: 'tester',
   viewer: 'viewer',
 } as const;
 
 // A role is a free-form label (admin can define e.g. "developer", "qa
-// engineer"). ONLY the special value 'admin' grants privileges — every other
-// label is an organizational tag with read-only (viewer) access. See can().
+// engineer"). 'admin' grants everything and 'tester' adds test-management
+// writes; every other label is an organizational tag with viewer access. See can().
 export type Role = string;
 
-// Roles offered in the admin UI dropdown. Only 'admin' is privileged; 'viewer'
-// is read-only. (More labels could be added here, but they'd all behave as
-// viewer since only 'admin' grants access.)
-export const ASSIGNABLE_ROLES = ['admin', 'viewer'] as const;
+// Roles offered in the admin UI dropdown. More labels could be added here, but
+// they'd behave as viewer: only 'admin' and 'tester' carry extra rights.
+export const ASSIGNABLE_ROLES = ['admin', 'tester', 'viewer'] as const;
 
 // The role a signed-in but unassigned allowed-domain user gets by default.
 export const DEFAULT_ROLE: Role = ROLES.viewer;
@@ -33,6 +35,8 @@ export const CAPABILITIES = {
   manageReports: 'manage:reports',
   // Server/notification/AI settings (POST /api/config, /api/access).
   manageSettings: 'manage:settings',
+  // Test management writes: projects, suites, cases, runs and their results.
+  manageCases: 'manage:cases',
 } as const;
 
 export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
@@ -44,6 +48,8 @@ export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
 // do everything else: view, run tests, delete, regenerate AI.
 export const can = (role: Role | null | undefined, capability: Capability): boolean => {
   if (role === ROLES.admin) return true;
+  // Unlike the rest, test management is closed to viewers and free-form labels.
+  if (capability === CAPABILITIES.manageCases) return role === ROLES.tester;
 
   return !!role && capability !== CAPABILITIES.manageSettings;
 };
@@ -101,16 +107,16 @@ const ADMIN_ROUTES: AdminRoute[] = [
   { method: 'POST', suffix: '/api/report/generate' },
   { method: 'POST', suffix: '/api/autotests/trigger' }, // run:tests (viewers too)
   { method: 'POST', suffix: '/api/autotests/cancel' }, // run:tests
+  { method: 'POST', suffix: '/api/autotests/rerun' }, // run:tests
   { method: 'POST', suffix: '/ai-summary' }, // POST /api/report/{id}/ai-summary (Regenerate)
 ];
 
 export const requiredCapability = (pathname: string, method: string): Capability => {
+  if (pathname.includes('/api/tm/')) return method === 'GET' ? CAPABILITIES.view : CAPABILITIES.manageCases;
   const match = ADMIN_ROUTES.find((route) => route.method === method && pathname.endsWith(route.suffix));
 
   if (!match) return CAPABILITIES.view;
-  if (match.suffix === '/api/autotests/trigger' || match.suffix === '/api/autotests/cancel') {
-    return CAPABILITIES.runTests;
-  }
+  if (match.suffix.startsWith('/api/autotests/')) return CAPABILITIES.runTests;
   if (match.suffix === '/api/config' || match.suffix === '/api/access') return CAPABILITIES.manageSettings;
 
   return CAPABILITIES.manageReports;

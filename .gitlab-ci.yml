@@ -1,0 +1,104 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Testboard CI — deploy on push to master, publish @testboard/reporter on tags.
+# ──────────────────────────────────────────────────────────────────────────────
+# CI/CD variables (Settings → CI/CD → Variables), all Protected, secrets Masked:
+#   SSH_HOST, SSH_USER                deploy host and user
+#   SSH_PRIVATE_KEY                   type File — private key allowed on the host
+#   HEALTH_URL                        e.g. https://testboard.example.com/api/ping
+#   TB_ANTHROPIC_API_KEY, TB_ANTHROPIC_MODEL
+#   TB_GITLAB_URL, TB_GITLAB_TOKEN, TB_GITLAB_AUTOTESTS_PROJECT, TB_GITLAB_REF
+#   TB_AUTH_GOOGLE_ID, TB_AUTH_GOOGLE_SECRET, TB_AUTH_ALLOWED_DOMAINS, TB_AUTH_ADMIN_EMAILS
+# The TB_* values replace the matching lines of /home/dev0ps/testboard/.env on every deploy; everything
+# else in that file (API_TOKEN, AUTH_SECRET, HOST_PORT, …) is maintained by hand and left untouched.
+#
+# Publishing the reporter: bump packages/reporter/package.json "version", merge, then push a tag
+# `reporter-v<that version>`. The job authenticates with CI_JOB_TOKEN; consumer projects must be allowed
+# in this project's Settings → CI/CD → Job token permissions.
+# ──────────────────────────────────────────────────────────────────────────────
+
+stages:
+  - deploy
+  - verify
+  - publish
+
+.ssh: &ssh
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache openssh-client
+    - install -d -m 700 ~/.ssh
+    - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+    - chmod 600 ~/.ssh/known_hosts
+
+update-env:
+  <<: *ssh
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - umask 077
+    - |
+      {
+        printf 'ANTHROPIC_API_KEY=%s\n'        "$TB_ANTHROPIC_API_KEY"
+        printf 'ANTHROPIC_MODEL=%s\n'          "$TB_ANTHROPIC_MODEL"
+        printf 'GITLAB_URL=%s\n'               "$TB_GITLAB_URL"
+        printf 'GITLAB_TOKEN=%s\n'             "$TB_GITLAB_TOKEN"
+        printf 'GITLAB_AUTOTESTS_PROJECT=%s\n' "$TB_GITLAB_AUTOTESTS_PROJECT"
+        printf 'GITLAB_REF=%s\n'               "${TB_GITLAB_REF:-main}"
+        printf 'AUTH_GOOGLE_ID=%s\n'           "$TB_AUTH_GOOGLE_ID"
+        printf 'AUTH_GOOGLE_SECRET=%s\n'       "$TB_AUTH_GOOGLE_SECRET"
+        printf 'AUTH_ALLOWED_DOMAINS=%s\n'     "$TB_AUTH_ALLOWED_DOMAINS"
+        printf 'AUTH_ADMIN_EMAILS=%s\n'        "$TB_AUTH_ADMIN_EMAILS"
+      } > /tmp/ci.env
+    - scp -o StrictHostKeyChecking=yes /tmp/ci.env "$SSH_USER@$SSH_HOST:/tmp/testboard-ci.env"
+    # Drop the CI-managed lines (and the retired DRONE_* ones), then append the fresh values.
+    - >
+      ssh -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" '
+        ENV_FILE=/home/dev0ps/testboard/.env;
+        grep -Ev "^(ANTHROPIC_API_KEY|ANTHROPIC_MODEL|GITLAB_URL|GITLAB_TOKEN|GITLAB_AUTOTESTS_PROJECT|GITLAB_REF|AUTH_GOOGLE_ID|AUTH_GOOGLE_SECRET|AUTH_ALLOWED_DOMAINS|AUTH_ADMIN_EMAILS|DRONE_[A-Z_]+)=" "$ENV_FILE" > "$ENV_FILE.tmp" || true;
+        cat /tmp/testboard-ci.env >> "$ENV_FILE.tmp";
+        mv "$ENV_FILE.tmp" "$ENV_FILE";
+        chmod 600 "$ENV_FILE";
+        rm -f /tmp/testboard-ci.env
+      '
+
+deploy:
+  <<: *ssh
+  stage: deploy
+  needs: [update-env]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  timeout: 10m
+  script:
+    - ssh -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" 'bash /home/dev0ps/testboard/repo/deploy/redeploy.sh && docker image prune -f'
+
+healthcheck:
+  stage: verify
+  image: curlimages/curl:8.7.1
+  needs: [deploy]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - curl -fsSk --retry 5 --retry-delay 5 --retry-connrefused --retry-all-errors --max-time 30 "$HEALTH_URL"
+
+publish-reporter:
+  stage: publish
+  image: node:22-alpine
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^reporter-v/
+  script:
+    - cd packages/reporter
+    - VERSION=$(node -p "require('./package.json').version")
+    - |
+      if [ "reporter-v$VERSION" != "$CI_COMMIT_TAG" ]; then
+        echo "Tag $CI_COMMIT_TAG does not match package version $VERSION" >&2
+        exit 1
+      fi
+    # tsc and the Playwright types come from the repo root.
+    - (cd ../.. && npm ci --ignore-scripts --no-audit --no-fund)
+    - ../../node_modules/.bin/tsc -p .
+    - REGISTRY="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
+    - echo "@testboard:registry=${REGISTRY}" > .npmrc
+    - echo "${REGISTRY#*:}:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - npm publish

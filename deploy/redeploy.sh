@@ -7,7 +7,7 @@
 # 1) Вручну з локальної машини:
 #      ssh dev0ps@<HOST> 'bash /home/dev0ps/testboard/repo/deploy/redeploy.sh'
 #
-# 2) CI (Drone/GitHub Actions/etc.):
+# 2) CI (GitLab CI, see .gitlab-ci.yml):
 #      ssh ... 'bash <DEPLOY_ROOT>/repo/deploy/redeploy.sh'
 #
 # Структура на хості:

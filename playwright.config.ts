@@ -31,9 +31,9 @@ const serverEnv: Record<string, string> = {
   AUTH_ALLOWED_DOMAINS: '',
   AUTH_ADMIN_EMAILS: '',
   // `.invalid` never resolves → the "external service unreachable" path is deterministic.
-  DRONE_SERVER: 'http://drone.invalid',
-  DRONE_TOKEN: 'e2e-drone-token',
-  DRONE_AUTOTESTS_REPO: 'e2e/autotests',
+  GITLAB_URL: 'http://gitlab.invalid',
+  GITLAB_TOKEN: 'e2e-gitlab-token',
+  GITLAB_AUTOTESTS_PROJECT: 'e2e/autotests',
   ANTHROPIC_API_KEY: '',
 };
 

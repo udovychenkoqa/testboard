@@ -3,7 +3,7 @@ import { describeApiError } from '@/app/lib/api-error';
 describe('describeApiError', () => {
   it('recognises an unreachable upstream (Node fetch failure)', () => {
     expect(describeApiError(502, '{"error":"fetch failed"}')).toEqual({ kind: 'unreachable' });
-    expect(describeApiError(500, '{"error":"getaddrinfo ENOTFOUND drone.example"}')).toEqual({ kind: 'unreachable' });
+    expect(describeApiError(500, '{"error":"getaddrinfo ENOTFOUND gitlab.example"}')).toEqual({ kind: 'unreachable' });
     expect(describeApiError(500, '{"error":"connect ECONNREFUSED 127.0.0.1:80"}')).toEqual({ kind: 'unreachable' });
   });
 

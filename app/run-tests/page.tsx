@@ -1,8 +1,6 @@
-import RunTests from '@/app/components/run-tests';
+import { redirect } from 'next/navigation';
 
-// Running autotests is allowed for any signed-in user (viewer + admin) — the
-// /api/autotests/trigger endpoint is gated by the run:tests capability, which
-// viewers have. No role redirect here.
+// Run Tests moved under Test Runs → Automated; keep old links working.
 export default function RunTestsPage() {
-  return <RunTests />;
+  redirect('/runs/automated');
 }

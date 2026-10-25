@@ -39,8 +39,9 @@ export const env = cleanEnv(process.env, {
   // Absolute public URL of this server — used for links in Slack/webhook
   // notifications (Slack rejects relative URLs in buttons).
   BASE_URL: str({ desc: 'Public base URL of this server', default: undefined }),
-  // Run autotests from the UI: feature is off unless all three are set.
-  DRONE_SERVER: str({ desc: 'Drone CI server URL for triggering autotest builds', default: undefined }),
-  DRONE_TOKEN: str({ desc: 'Drone CI user token', default: undefined }),
-  DRONE_AUTOTESTS_REPO: str({ desc: 'Drone repo slug (owner/name) with autotests', default: undefined }),
+  // Run autotests from the UI through GitLab pipelines: off unless URL, token and project are set.
+  GITLAB_URL: str({ desc: 'GitLab base URL, e.g. https://gitlab.com', default: undefined }),
+  GITLAB_TOKEN: str({ desc: 'GitLab access token with api scope (server-side only)', default: undefined }),
+  GITLAB_AUTOTESTS_PROJECT: str({ desc: 'Autotests project path (group/name) or numeric id', default: undefined }),
+  GITLAB_REF: str({ desc: 'Branch the autotests pipeline runs on', default: 'main' }),
 });

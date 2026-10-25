@@ -61,11 +61,12 @@ services:
       # ніяких помилок. Ключ — sk-ant-...
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-5}
-      # Запуск автотестів з UI через Drone CI (опційно). Якщо не задано —
-      # сторінка Run Tests скаже "не налаштовано", ніяких помилок.
-      DRONE_SERVER: ${DRONE_SERVER:-}
-      DRONE_TOKEN: ${DRONE_TOKEN:-}
-      DRONE_AUTOTESTS_REPO: ${DRONE_AUTOTESTS_REPO:-}
+      # Running autotests from the UI through GitLab pipelines (optional). If unset, the
+      # Automated tab says "not configured", no errors.
+      GITLAB_URL: ${GITLAB_URL:-}
+      GITLAB_TOKEN: ${GITLAB_TOKEN:-}
+      GITLAB_AUTOTESTS_PROJECT: ${GITLAB_AUTOTESTS_PROJECT:-}
+      GITLAB_REF: ${GITLAB_REF:-main}
       # Публічна адреса сервера — для лінків у Slack/webhook-нотифікаціях
       BASE_URL: ${BASE_URL:-https://testboard.example.com}
     volumes:

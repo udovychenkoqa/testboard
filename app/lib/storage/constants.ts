@@ -12,7 +12,8 @@ export const REPORTS_BUCKET = `${DATA_PATH}/${REPORTS_PATH}`;
 
 const CWD = process.cwd();
 
-export const DATA_FOLDER = path.join(CWD, DATA_PATH);
+// resolve, not join: an absolute DATA_DIR (e.g. a mounted volume) must be used as-is.
+export const DATA_FOLDER = path.resolve(CWD, DATA_PATH);
 export const APP_CONFIG = path.join(DATA_FOLDER, CONFIG_FILENAME);
 export const PW_CONFIG = path.join(CWD, 'playwright.config.ts');
 export const TMP_FOLDER = path.join(CWD, '.tmp');
