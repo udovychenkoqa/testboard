@@ -7,11 +7,12 @@ import type { SuiteNode } from '@/app/lib/tm/suites';
 import { useEffect, useMemo, useState } from 'react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Select, SelectItem } from '@heroui/react';
+import { Button, Input, SelectItem } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { FolderPlus, ListChecks, Play, Plus, Search, SearchX, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Select } from '@/app/components/ui/select';
 import { PageHeader } from '@/app/components/page-header';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
@@ -145,6 +146,14 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
             totalCount={totalCount}
             onAddChild={(parentId) => setNameDialog({ kind: 'create', parentId })}
             onDelete={(suite) => setConfirm({ kind: 'suite', suite })}
+            onDropCases={
+              canEdit
+                ? (target, ids) => {
+                    bulk.mutate({ body: { action: 'move', ids, suiteId: target } });
+                    toast.success(t('cases.moved'));
+                  }
+                : undefined
+            }
             onRename={(suite) => setNameDialog({ kind: 'rename', suite })}
             onSelect={setSuiteId}
           />
@@ -248,6 +257,8 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
               canEdit={canEdit}
               cases={cases}
               selected={selected}
+              selectedSuiteId={suiteId}
+              suites={suites}
               onOpen={(caseId) => setPanel({ kind: 'edit', caseId })}
               onToggle={(id) =>
                 setSelected((prev) => {

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { E2E_BASE_URL } from '../../playwright.config';
+import { E2E_API_TOKEN, E2E_BASE_URL } from '../../playwright.config';
 
 import { collectConsoleErrors, useLanguage } from './helpers';
 
@@ -67,7 +67,8 @@ test.describe('test management', () => {
 
     await runDialog.getByLabel('Run name').fill('Smoke');
     await runDialog.getByRole('button', { name: 'Create' }).click();
-    await expect(page).toHaveURL(/\/runs\/manual\/\d+$/);
+    // The app navigates to the new run's page, which `next dev` compiles on first visit — slow on a cold server.
+    await expect(page).toHaveURL(/\/runs\/manual\/\d+$/, { timeout: 60_000 });
     await expect(page.getByText('0 / 2 done')).toBeVisible();
 
     // Mark results; the panel moves on to the next untested case by itself.
@@ -89,6 +90,170 @@ test.describe('test management', () => {
     await expect(page.getByRole('link', { name: /Smoke/ })).toContainText('2 / 2 done');
 
     expect(errors).toEqual([]);
+  });
+
+  test('dragging cases onto a suite moves them there', async ({ page, request }) => {
+    const key = `e2e-dnd-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+    const api = async (path: string, data: unknown) => {
+      const res = await request.post(path, { headers, data });
+
+      expect(res.ok(), await res.text()).toBeTruthy();
+
+      return res.json();
+    };
+
+    await api('/api/tm/projects', { key, name: `DnD ${key}`, code: 'DND' });
+    const from = await api(`/api/tm/projects/${key}/suites`, { name: 'Inbox' });
+
+    const target = await api(`/api/tm/projects/${key}/suites`, { name: 'Target' });
+
+    await api(`/api/tm/projects/${key}/suites`, { name: 'Nested', parentId: target.id });
+    await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'First to move' });
+    await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'Second to move' });
+    await api(`/api/tm/projects/${key}/cases`, { suiteId: from.id, title: 'Stays put' });
+
+    await page.goto(`/cases/${key}`);
+    const tree = page.getByRole('navigation', { name: 'Suite' });
+    // The suite's own row (its <li> also wraps the sub-suites).
+    const suite = (name: string) => tree.locator('li > div', { hasText: name }).last();
+
+    // One case dragged alone, while looking at the source suite: it leaves this list and shows up only in the target.
+    await suite('Inbox').getByText('Inbox').click();
+    await expect(page.getByText('Stays put')).toBeVisible();
+    await page.getByText('First to move').dragTo(suite('Target'));
+    await expect(page.getByText('First to move')).toHaveCount(0);
+    await suite('Target').getByText('Target').click();
+    await expect(page.getByText('First to move')).toHaveCount(1);
+    await expect(page.getByText('Stays put')).toHaveCount(0);
+    await suite('Inbox').getByText('Inbox').click();
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Cases moved' })).toBeVisible();
+    await expect(suite('Target')).toContainText('1');
+    await expect(suite('Inbox')).toContainText('2');
+
+    // A selected case drags the whole selection with it.
+    await page.getByRole('listitem').filter({ hasText: 'Second to move' }).getByRole('checkbox').check();
+    await page.getByText('Second to move').dragTo(suite('Target'));
+    await expect(suite('Target')).toContainText('2');
+    await expect(suite('Inbox')).toContainText('1');
+
+    // Counts are per suite: moving a case into a sub-suite takes it off the parent's number.
+    await page.getByText('Stays put').dragTo(suite('Nested'));
+    await expect(suite('Nested')).toContainText('1');
+    await expect(suite('Target')).toContainText('2');
+    await expect(suite('Inbox')).toContainText('0');
+
+    // Everything goes into the sub-suite; looking at the parent, the cases still sit under the sub-suite's
+    // header, so they don't read as the parent's own.
+    await suite('Target').getByText('Target').click();
+    await page.getByRole('listitem').filter({ hasText: 'First to move' }).getByRole('checkbox').check();
+    await page.getByRole('listitem').filter({ hasText: 'Second to move' }).getByRole('checkbox').check();
+    await page.getByText('First to move').dragTo(suite('Nested'));
+    await expect(suite('Nested')).toContainText('3');
+    await expect(suite('Target')).toContainText('0');
+    await expect(page.getByRole('listitem').filter({ hasText: 'Target / Nested' })).toBeVisible();
+  });
+
+  test('the suite menu adds a sub-suite', async ({ page, request }) => {
+    const key = `e2e-sub-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+
+    expect(
+      (await request.post('/api/tm/projects', { headers, data: { key, name: `Sub ${key}`, code: 'SUB' } })).ok(),
+    ).toBeTruthy();
+    expect(
+      (await request.post(`/api/tm/projects/${key}/suites`, { headers, data: { name: 'Parent' } })).ok(),
+    ).toBeTruthy();
+
+    await page.goto(`/cases/${key}`);
+    const tree = page.getByRole('navigation', { name: 'Suite' });
+    const parentRow = tree.locator('li > div', { hasText: 'Parent' });
+
+    await parentRow.hover();
+    await parentRow.getByRole('button', { name: 'Edit' }).click();
+    await page.getByRole('menuitem', { name: 'Add sub-suite' }).click();
+
+    const dialog = page.getByRole('dialog');
+
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel('Name').fill('Child');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(tree.locator('li > div', { hasText: 'Child' })).toBeVisible();
+  });
+
+  test('a select picks a value (case priority)', async ({ page, request }) => {
+    const key = `e2e-sel-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+
+    expect(
+      (await request.post('/api/tm/projects', { headers, data: { key, name: `Sel ${key}`, code: 'SEL' } })).ok(),
+    ).toBeTruthy();
+    expect((await request.post(`/api/tm/projects/${key}/suites`, { headers, data: { name: 'S' } })).ok()).toBeTruthy();
+
+    await page.goto(`/cases/${key}`);
+    await page.getByRole('button', { name: 'New case' }).first().click();
+    const drawer = page.getByRole('dialog');
+
+    await drawer.getByLabel('Title').fill('Priority pick');
+    await drawer.getByRole('button', { name: /Priority/ }).click();
+    await page.getByRole('option', { name: 'High' }).click();
+    await expect(drawer.getByRole('button', { name: /Priority/ })).toContainText('High');
+    await drawer.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: 'Priority pick' })).toContainText('High');
+  });
+
+  test('renaming a project keeps its key and code', async ({ page, request }) => {
+    const key = `e2e-ren-${String(Date.now()).slice(-6)}`;
+
+    expect(
+      (
+        await request.post('/api/tm/projects', {
+          headers: { Authorization: E2E_API_TOKEN },
+          data: { key, name: `Old ${key}`, code: 'REN' },
+        })
+      ).ok(),
+    ).toBeTruthy();
+
+    await page.goto('/cases');
+    await page.locator('div.group', { hasText: key }).getByRole('button', { name: 'Rename' }).click();
+    const dialog = page.getByRole('dialog');
+
+    await dialog.getByRole('textbox').fill(`New ${key}`);
+    await dialog.getByRole('button', { name: 'Save' }).click();
+
+    const card = page.locator('div.group', { hasText: key });
+
+    await expect(card).toContainText(`New ${key}`);
+    await expect(card).toContainText('REN');
+  });
+
+  test('deleting a project needs its key typed and removes it', async ({ page, request }) => {
+    const key = `e2e-del-${String(Date.now()).slice(-6)}`;
+
+    expect(
+      (
+        await request.post('/api/tm/projects', {
+          headers: { Authorization: E2E_API_TOKEN },
+          data: { key, name: `Delete me ${key}`, code: 'DEL' },
+        })
+      ).ok(),
+    ).toBeTruthy();
+
+    await page.goto('/cases');
+    const card = page.locator('div.group', { hasText: key });
+
+    await card.getByRole('button', { name: 'Delete project' }).click();
+    const dialog = page.getByRole('dialog');
+    const confirm = dialog.getByRole('button', { name: 'Delete project' });
+
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole('textbox').fill('wrong-key');
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole('textbox').fill(key);
+    await confirm.click();
+
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'deleted' })).toBeVisible();
+    await expect(page.getByText(key, { exact: true })).toHaveCount(0);
   });
 
   test('a run that does not exist says so instead of loading forever', async ({ page }) => {

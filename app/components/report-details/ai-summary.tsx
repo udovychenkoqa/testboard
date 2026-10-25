@@ -6,6 +6,7 @@ import { Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { withBase } from '@/app/lib/url';
+import { aiFailureKind } from '@/app/lib/ai/failure-kind';
 import useMutation from '@/app/hooks/useMutation';
 import { type AiSummaryResult } from '@/app/lib/ai/reportSummary';
 import { BlockSkeleton } from '@/app/components/ui/skeletons';
@@ -96,7 +97,7 @@ const statusMessage = (status: AiSummaryResult | null, t: AiT): string | null =>
 
   switch (status.status) {
     case 'failed':
-      return t('failed', { reason: status.reason });
+      return t(`failure.${aiFailureKind(status.reason)}`);
     case 'circuit_open':
       return t('rateLimited', { seconds: Math.ceil(status.retryInMs / 1000) });
     case 'skipped_disabled':
@@ -240,6 +241,15 @@ const AiReportSummary: FC<AiReportSummaryProps> = ({ reportId, reportUrl, hasFai
           <div className="flex flex-col gap-2">
             <BlockSkeleton lines={3} />
             <p className="text-[12.5px] text-default-500">{t('pending')}</p>
+          </div>
+        ) : status?.status === 'failed' ? (
+          // A plain-words explanation; the raw API error stays one click away for whoever fixes it.
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12.5px] text-default-600">{statusMessage(status, t)}</p>
+            <details className="text-[11.5px] text-default-400">
+              <summary className="cursor-pointer select-none">{t('technicalDetails')}</summary>
+              <p className="mt-1 break-all font-mono">{status.reason}</p>
+            </details>
           </div>
         ) : (
           <p className="text-[12.5px] text-default-500">{statusMessage(status, t)}</p>

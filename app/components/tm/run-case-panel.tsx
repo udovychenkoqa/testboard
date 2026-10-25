@@ -11,13 +11,13 @@ import {
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  Select,
   SelectItem,
   Textarea,
 } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { Ban, Check, ChevronRight, SkipForward, X } from 'lucide-react';
 
+import { Select } from '@/app/components/ui/select';
 import FormattedDate from '@/app/components/date-format';
 import { ResultBadge } from '@/app/components/tm/result';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
@@ -75,7 +75,17 @@ export const RunCasePanel: React.FC<RunCasePanelProps> = ({
     runCase?.assignee && !assignees.includes(runCase.assignee) ? [...assignees, runCase.assignee] : assignees;
 
   return (
-    <Drawer isOpen={runCase !== null} size="xl" onOpenChange={(open) => !open && onClose()}>
+    // No dimmed backdrop: fading a 50% black layer over the whole page read as the site blinking on every
+    // open/close; the panel's shadow and border separate it, and clicking outside still closes it. No scroll
+    // lock either: the page scrolls inside <main>, so locking <html> only toggled its overflow.
+    <Drawer
+      backdrop="transparent"
+      classNames={{ base: 'border-l border-divider shadow-2xl' }}
+      isOpen={runCase !== null}
+      shouldBlockScroll={false}
+      size="xl"
+      onOpenChange={(open) => !open && onClose()}
+    >
       <DrawerContent>
         {runCase && snapshot && (
           <>

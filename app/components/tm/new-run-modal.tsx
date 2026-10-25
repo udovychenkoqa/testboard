@@ -4,20 +4,11 @@ import type { RunSource, RunSummary } from '@/app/lib/tm/runs';
 import type { SuiteNode } from '@/app/lib/tm/suites';
 
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-} from '@heroui/react';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, SelectItem } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
+import { Select } from '@/app/components/ui/select';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 

@@ -427,10 +427,24 @@
       "generate": "Generate",
       "pending": "AI analysis is still in progress…",
       "none": "No AI summary yet.",
-      "failed": "AI analysis failed: {reason}",
       "rateLimited": "AI analysis temporarily unavailable (rate limited) — retry in ~{seconds}s.",
       "notConfigured": "AI analysis is not configured on this server.",
-      "unsupportedStorage": "AI analysis is only supported with local filesystem storage."
+      "unsupportedStorage": "AI analysis is only supported with local filesystem storage.",
+      "technicalDetails": "Technical details",
+      "failure": {
+        "auth": "AI analysis failed: the Anthropic API key is invalid or revoked. An admin needs to update ANTHROPIC_API_KEY on the server.",
+        "forbidden": "AI analysis failed: the Anthropic API key has no access to this model. Check the key’s permissions or ANTHROPIC_MODEL.",
+        "billing": "AI analysis failed: the Anthropic account has run out of credits. Top up the balance, then press Generate.",
+        "model": "AI analysis failed: the configured model doesn’t exist. Check ANTHROPIC_MODEL on the server.",
+        "rateLimit": "AI analysis hit the Anthropic rate limit. Try again in a few minutes.",
+        "unavailable": "Anthropic is overloaded or temporarily unavailable. Try again later.",
+        "network": "The server couldn’t reach Anthropic (network or timeout). Try again later.",
+        "badRequest": "Anthropic rejected the request (for example, the report is too large for the model).",
+        "readReport": "AI analysis failed: the report files couldn’t be read.",
+        "writeSummary": "AI analysis finished but the summary couldn’t be saved.",
+        "emptyResponse": "Anthropic returned an empty answer. Try generating again.",
+        "unknown": "AI analysis failed with an unexpected error."
+      }
     },
     "test": {
       "retry": "retry {n}/{n}",
@@ -571,7 +585,8 @@
       "noSteps": "No steps yet.",
       "moveUp": "Move up",
       "moveDown": "Move down",
-      "removeStep": "Remove step"
+      "removeStep": "Remove step",
+      "tagSuggestions": "Existing tags"
     },
     "projects": {
       "title": "Test Cases",
@@ -585,7 +600,12 @@
       "automated": "{percent}% automated",
       "emptyTitle": "No projects yet",
       "emptyDescription": "Create a project to start writing test cases.",
-      "created": "Project created"
+      "created": "Project created",
+      "delete": "Delete project",
+      "deleteTitle": "Delete “{name}”?",
+      "deleteWarning": "This permanently deletes the project with all its suites, {count, plural, one {# case} other {# cases}} and every run. This can’t be undone.",
+      "deleteConfirmLabel": "Type {key} to confirm",
+      "deleted": "Project “{name}” deleted"
     },
     "cases": {
       "back": "All projects",
@@ -609,7 +629,8 @@
       "caseDeleteConfirm": "Delete the selected cases? Past runs keep their results.",
       "caseCreated": "Case {label} created",
       "moved": "Cases moved",
-      "readOnly": "You can view test cases; editing needs the tester or admin role."
+      "readOnly": "You can view test cases; editing needs the tester or admin role.",
+      "dragCount": "{count, plural, one {# case} other {# cases}}"
     }
   }
 }

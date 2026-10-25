@@ -7,6 +7,9 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/r
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight, Folder, Layers, MoreHorizontal } from 'lucide-react';
 
+import { CASE_DRAG_TYPE } from '@/app/lib/tm/constants';
+import { afterMenuCloses } from '@/app/lib/after-menu-closes';
+
 interface SuiteTreeProps {
   suites: SuiteNode[];
   selectedId: number | null;
@@ -16,21 +19,18 @@ interface SuiteTreeProps {
   onAddChild: (parentId: number) => void;
   onRename: (suite: SuiteNode) => void;
   onDelete: (suite: SuiteNode) => void;
+  // Cases dropped onto a suite (see CaseList); only wired when the user can edit.
+  onDropCases?: (suiteId: number, caseIds: number[]) => void;
 }
 
-// Case count of a suite including everything nested under it.
-const totals = (suites: SuiteNode[]) => {
+// Counts next to each suite are its own cases only (like Qase): a total that included sub-suites made a case
+// moved into a sub-suite look like it sat in both.
+const childrenOf = (suites: SuiteNode[]) => {
   const children = new Map<number | null, SuiteNode[]>();
 
   for (const s of suites) children.set(s.parentId, [...(children.get(s.parentId) ?? []), s]);
-  const memo = new Map<number, number>();
-  const total = (s: SuiteNode): number => {
-    if (!memo.has(s.id)) memo.set(s.id, s.caseCount + (children.get(s.id) ?? []).reduce((n, c) => n + total(c), 0));
 
-    return memo.get(s.id)!;
-  };
-
-  return { children, total };
+  return children;
 };
 
 export const SuiteTree: React.FC<SuiteTreeProps> = ({
@@ -42,10 +42,38 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
   onAddChild,
   onRename,
   onDelete,
+  onDropCases,
 }) => {
   const t = useTranslations('tm');
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
-  const { children, total } = useMemo(() => totals(suites), [suites]);
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
+
+  const dropProps = (suiteId: number) =>
+    onDropCases
+      ? {
+          onDragOver: (e: React.DragEvent) => {
+            if (!e.dataTransfer.types.includes(CASE_DRAG_TYPE)) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            setDropTarget(suiteId);
+          },
+          onDragLeave: (e: React.DragEvent) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropTarget(null);
+          },
+          onDrop: (e: React.DragEvent) => {
+            e.preventDefault();
+            setDropTarget(null);
+            try {
+              const ids = JSON.parse(e.dataTransfer.getData(CASE_DRAG_TYPE)) as number[];
+
+              if (ids.length) onDropCases(suiteId, ids);
+            } catch {
+              // not our payload
+            }
+          },
+        }
+      : {};
+  const children = useMemo(() => childrenOf(suites), [suites]);
 
   const toggle = (id: number) =>
     setCollapsed((prev) => {
@@ -57,7 +85,7 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
     });
 
   const row = (active: boolean) =>
-    `group flex h-8 items-center gap-1.5 rounded-lg pr-1 text-[12.5px] transition-colors ${
+    `group flex h-8 items-center gap-1.5 rounded-lg pr-1 text-[12.5px] transition-all ${
       active ? 'bg-primary/10 font-medium text-primary' : 'text-default-600 hover:bg-default-100'
     }`;
 
@@ -67,7 +95,13 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
 
     return (
       <li key={suite.id}>
-        <div className={row(selectedId === suite.id)} style={{ paddingLeft: 4 + depth * 14 }}>
+        <div
+          className={`${row(selectedId === suite.id)} ${
+            dropTarget === suite.id ? 'scale-[1.02] bg-primary/15 text-primary ring-2 ring-primary/60' : ''
+          }`}
+          style={{ paddingLeft: 4 + depth * 14 }}
+          {...dropProps(suite.id)}
+        >
           <button
             aria-label={suite.name}
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-default-400 ${kids.length ? '' : 'invisible'}`}
@@ -83,10 +117,12 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
           >
             <Folder className="shrink-0" size={13} />
             <span className="truncate">{suite.name}</span>
-            <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{total(suite)}</span>
+            <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{suite.caseCount}</span>
           </button>
           {canEdit && (
-            <Dropdown placement="bottom-end">
+            // HeroUI 2.7 restarts the menu's open animation when it repositions (~300 ms in) and on close, so
+            // the menu flashed; without the animation it appears in place.
+            <Dropdown disableAnimation placement="bottom-end" shouldBlockScroll={false}>
               <DropdownTrigger>
                 <button
                   aria-label={t('common.edit')}
@@ -96,14 +132,20 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
                   <MoreHorizontal size={14} />
                 </button>
               </DropdownTrigger>
-              <DropdownMenu aria-label={suite.name}>
-                <DropdownItem key="add" onPress={() => onAddChild(suite.id)}>
-                  {t('cases.subSuite')}
-                </DropdownItem>
-                <DropdownItem key="rename" onPress={() => onRename(suite)}>
-                  {t('common.rename')}
-                </DropdownItem>
-                <DropdownItem key="delete" className="text-danger" color="danger" onPress={() => onDelete(suite)}>
+              <DropdownMenu
+                aria-label={suite.name}
+                onAction={(key) =>
+                  // onAction, not an item's onPress: with animations off the menu unmounts before a press ends.
+                  afterMenuCloses(() => {
+                    if (key === 'add') onAddChild(suite.id);
+                    else if (key === 'rename') onRename(suite);
+                    else if (key === 'delete') onDelete(suite);
+                  })
+                }
+              >
+                <DropdownItem key="add">{t('cases.subSuite')}</DropdownItem>
+                <DropdownItem key="rename">{t('common.rename')}</DropdownItem>
+                <DropdownItem key="delete" className="text-danger" color="danger">
                   {t('common.delete')}
                 </DropdownItem>
               </DropdownMenu>

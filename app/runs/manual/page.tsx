@@ -6,10 +6,11 @@ import type { RunSummary } from '@/app/lib/tm/runs';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Select, SelectItem } from '@heroui/react';
+import { Button, SelectItem } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { FolderKanban, Play, Plus } from 'lucide-react';
 
+import { Select } from '@/app/components/ui/select';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { NewRunModal } from '@/app/components/tm/new-run-modal';

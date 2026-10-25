@@ -48,6 +48,8 @@ setup('sign in with the API key', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel(/API Key/i).fill(E2E_API_TOKEN);
   await page.getByRole('button', { name: /Login with API Key/i }).click();
-  await expect(page).toHaveURL(/\/reports/);
+  // After sign-in the app goes / → /reports; on a cold `next dev` both pages compile first, which can take
+  // longer than the default 15 s expect timeout.
+  await expect(page).toHaveURL(/\/reports/, { timeout: 60_000 });
   await page.context().storageState({ path: E2E_AUTH_STATE });
 });

@@ -4,12 +4,13 @@ import type { RunCaseView, RunSummary } from '@/app/lib/tm/runs';
 
 import { useMemo, useState } from 'react';
 import NextLink from 'next/link';
-import { Button, Select, SelectItem } from '@heroui/react';
+import { Button, SelectItem } from '@heroui/react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, CheckCheck, SearchX, User } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Select } from '@/app/components/ui/select';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { ConfirmModal } from '@/app/components/tm/confirm-modal';
