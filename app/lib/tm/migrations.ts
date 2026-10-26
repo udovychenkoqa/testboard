@@ -91,4 +91,15 @@ export const MIGRATIONS: string[] = [
     created_at TEXT NOT NULL
   );
   `,
+  // 3: latest automated result per case, taken from the reports the autotests upload.
+  `
+  CREATE TABLE tm_case_auto_results (
+    case_id INTEGER PRIMARY KEY REFERENCES tm_cases(id) ON DELETE CASCADE,
+    result TEXT NOT NULL CHECK (result IN ('passed', 'failed', 'skipped')),
+    report_id TEXT NOT NULL,
+    report_url TEXT NOT NULL,
+    tests TEXT NOT NULL,
+    recorded_at TEXT NOT NULL
+  );
+  `,
 ];

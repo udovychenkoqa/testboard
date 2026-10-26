@@ -12,8 +12,8 @@ describe('autotest pipeline records', () => {
   afterEach(() => db.close());
 
   it('runs the migration that adds the table', () => {
-    expect(MIGRATIONS.length).toBe(2);
-    expect(db.pragma('user_version', { simple: true })).toBe(2);
+    expect(db.pragma('user_version', { simple: true })).toBe(MIGRATIONS.length);
+    expect(db.prepare("SELECT name FROM sqlite_master WHERE name = 'autotest_pipelines'").get()).toBeTruthy();
   });
 
   it('stores who started a pipeline and with which inputs', () => {
