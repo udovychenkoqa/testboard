@@ -20,10 +20,10 @@ test.describe('Automated runs (GitLab)', () => {
     await expect(page.getByText('Funnel')).toHaveCount(0);
     await expect(page.getByText('Country')).toHaveCount(0);
 
-    await expect(page.getByRole('textbox', { name: 'Qase run ID' })).toHaveCount(0);
+    await expect(page.getByText('Skip visual checks')).toHaveCount(0);
     await page.getByRole('button', { name: 'Advanced' }).click();
-    await expect(page.getByRole('textbox', { name: 'Qase run ID' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Qase case IDs' })).toBeVisible();
+    // The autotests report to Testboard, not Qase: no Qase inputs.
+    await expect(page.getByText('Qase')).toHaveCount(0);
     await expect(page.getByText('Skip visual checks')).toBeVisible();
     await expect(page.getByText('Re-collect snapshots even if baselines exist')).toBeVisible();
   });

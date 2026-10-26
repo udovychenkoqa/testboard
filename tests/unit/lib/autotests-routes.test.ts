@@ -69,8 +69,6 @@ describe('/api/autotests routes', () => {
       env: 'stage',
       mode: 'by tag',
       tag: '@api',
-      qase_run_id: '',
-      qase_id: '',
       force_snapshots_recollection: false,
       skip_visual_checks: true,
     });

@@ -284,10 +284,6 @@
       "smoke": "Smoke",
       "regression": "Регресія"
     },
-    "qaseRunId": "Qase run ID",
-    "qaseRunIdDescription": "Звітувати в наявний прогін Qase. Порожньо — запуск лише за тегом.",
-    "qaseId": "ID кейсів Qase",
-    "qaseIdDescription": "Для генерації еталонних скріншотів, напр. 356,357.",
     "forceSnapshots": "Перезібрати скріншоти, навіть якщо еталони є",
     "skipVisual": "Пропустити візуальні перевірки",
     "openInGitlab": "Відкрити в GitLab",

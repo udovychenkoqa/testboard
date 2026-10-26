@@ -7,8 +7,6 @@ describe('trigger inputs', () => {
       env: 'prod',
       mode: 'by tag',
       tag: '@smoke',
-      qase_run_id: '',
-      qase_id: '',
       force_snapshots_recollection: false,
       skip_visual_checks: true,
     });
@@ -20,8 +18,6 @@ describe('trigger inputs', () => {
       env: 'dev',
       mode: 'regression',
       tag: '@api, @visual',
-      qase_run_id: '123',
-      qase_id: '356, 357',
       force_snapshots_recollection: true,
       skip_visual_checks: false,
     });
@@ -33,12 +29,15 @@ describe('trigger inputs', () => {
   it.each([
     [{ env: 'test' }],
     [{ mode: 'nightly' }],
-    [{ qase_run_id: 'abc' }],
-    [{ qase_id: '35;6' }],
     [{ tag: 'x'.repeat(201) }],
     [{ skip_visual_checks: 'yes' }],
   ])('rejects %j', (input) => {
     expect(triggerInputs.safeParse(input).success).toBe(false);
+  });
+
+  it('does not send Qase inputs: the autotests report to Testboard, not Qase', () => {
+    expect(triggerInputs.parse({ qase_run_id: '123', qase_id: '356' })).not.toHaveProperty('qase_run_id');
+    expect(triggerInputs.parse({ qase_run_id: '123', qase_id: '356' })).not.toHaveProperty('qase_id');
   });
 
   it('parses a pipeline id', () => {

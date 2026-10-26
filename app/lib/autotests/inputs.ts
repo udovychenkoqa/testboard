@@ -1,4 +1,5 @@
-// Inputs of the autotests GitLab pipeline (`spec.inputs` in its .gitlab-ci.yml). Client-safe: the run form
+// Inputs of the autotests GitLab pipeline (`spec.inputs` in its .gitlab-ci.yml) that Testboard sends. The
+// pipeline's Qase inputs are left out: the autotests report to Testboard, not Qase. Client-safe: the run form
 // and the server schema both read from here, so a change to the pipeline is updated in one place.
 
 export const ENVIRONMENTS = ['prod', 'stage', 'dev'] as const;
@@ -12,8 +13,6 @@ export interface TriggerInputs {
   env: Environment;
   mode: Mode;
   tag: string;
-  qase_run_id: string;
-  qase_id: string;
   force_snapshots_recollection: boolean;
   skip_visual_checks: boolean;
 }
@@ -22,8 +21,6 @@ export const DEFAULT_INPUTS: TriggerInputs = {
   env: 'prod',
   mode: 'by tag',
   tag: '@smoke',
-  qase_run_id: '',
-  qase_id: '',
   force_snapshots_recollection: false,
   skip_visual_checks: true,
 };

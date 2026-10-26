@@ -284,10 +284,6 @@
       "smoke": "Smoke",
       "regression": "Regression"
     },
-    "qaseRunId": "Qase run ID",
-    "qaseRunIdDescription": "Report into an existing Qase run. Empty — run by tag only.",
-    "qaseId": "Qase case IDs",
-    "qaseIdDescription": "For visual baseline generation, e.g. 356,357.",
     "forceSnapshots": "Re-collect snapshots even if baselines exist",
     "skipVisual": "Skip visual checks",
     "openInGitlab": "Open in GitLab",

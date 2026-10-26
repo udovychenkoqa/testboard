@@ -175,7 +175,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const [inputs, setInputs] = useState<TriggerInputs>(DEFAULT_INPUTS);
   const set = <K extends keyof TriggerInputs>(key: K, value: TriggerInputs[K]) =>
     setInputs((prev) => ({ ...prev, [key]: value }));
-  // The Qase and snapshot inputs are used rarely — hidden behind a toggle to keep the form clean.
+  // The snapshot inputs are used rarely — hidden behind a toggle to keep the form clean.
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -184,7 +184,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const [envFilter, setEnvFilter] = useState<string>('all');
   const [mineOnly, setMineOnly] = useState(false);
 
-  // Restore the last-used environment and mode. The tag and Qase ids are per-run, so they start fresh.
+  // Restore the last-used environment and mode. The tag is per-run, so it starts fresh.
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
@@ -278,12 +278,9 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const successCount = builds.filter((b) => b.status === 'success').length;
 
   // Live "what will run" summary for the footer.
-  const summaryParts = [
-    inputs.env,
-    modeLabel(inputs.mode),
-    inputs.mode === 'by tag' ? inputs.tag || '—' : null,
-    inputs.qase_run_id ? `Qase #${inputs.qase_run_id}` : null, // i18n-ignore — Qase is a product name
-  ].filter(Boolean) as string[];
+  const summaryParts = [inputs.env, modeLabel(inputs.mode), inputs.mode === 'by tag' ? inputs.tag || '—' : null].filter(
+    Boolean,
+  ) as string[];
 
   const gridColumns: GridColumn[] = [
     { key: 'build', label: t('columns.build') },
@@ -388,29 +385,6 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
             {showAdvanced && (
               <div className="mt-3 rounded-lg border border-dashed border-default-300 bg-default-50 p-4">
                 <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
-                  <Input
-                    classNames={{ inputWrapper: 'h-8 min-h-8' }}
-                    description={t('qaseRunIdDescription')}
-                    inputMode="numeric"
-                    label={t('qaseRunId')}
-                    labelPlacement="outside"
-                    placeholder="1234" // i18n-ignore — example value
-                    size="sm"
-                    value={inputs.qase_run_id}
-                    variant="bordered"
-                    onValueChange={(value) => set('qase_run_id', value.replace(/\D/g, ''))}
-                  />
-                  <Input
-                    classNames={{ inputWrapper: 'h-8 min-h-8' }}
-                    description={t('qaseIdDescription')}
-                    label={t('qaseId')}
-                    labelPlacement="outside"
-                    placeholder="356, 357" // i18n-ignore — example value
-                    size="sm"
-                    value={inputs.qase_id}
-                    variant="bordered"
-                    onValueChange={(value) => set('qase_id', value.replace(/[^\d,\s]/g, ''))}
-                  />
                   <Switch
                     isSelected={inputs.skip_visual_checks}
                     size="sm"
