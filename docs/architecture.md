@@ -143,6 +143,14 @@ Then `service.saveResult` → storage → result metadata.
 **Report generation:** `POST /api/report/generate {resultsIds, project}` → `storage.generateReport`
 (merge through Playwright) → cache → AI summary → notifications.
 
+**Autotests → cases (TM stage 2):** a Playwright test tagged with a case ID (`{ tag: ['@HAN-12'] }`) is linked
+to that case of the TM project whose key equals the report's `project`. After every report is generated,
+`app/lib/tm/automation.ts` (`syncReport`, isolated like the AI summary) stores each linked case's latest
+automated result (`tm_case_auto_results`), marks `manual`/`to_automate` cases `automated`, and, if the report
+metadata carries `testboardRun` (an in-progress run id or `new`), writes the results into that run — never over
+a result a person set. The autotests put `testboardRun` into `resultDetails` from `TESTBOARD_RUN`, which the
+GitLab pipeline input `testboard_run` (chosen in the Automated tab) sets.
+
 **Manual run:**
 
 1. `POST /api/tm/projects/:key/runs {name, source, assignee}` selects cases (all / suites / tags /
@@ -168,4 +176,3 @@ Then `service.saveResult` → storage → result metadata.
 - No mobile layout: the sidebar doesn't collapse on narrow screens.
 - No per-project permissions in TM: roles are global.
 - 17 legacy ESLint warnings (formatting and import order) outside TM.
-- TM stage 2 (linking cases to automated tests) is not implemented yet.
