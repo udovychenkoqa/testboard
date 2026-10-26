@@ -24,6 +24,10 @@ test.describe('Automated runs (GitLab)', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     // The autotests report to Testboard, not Qase: no Qase inputs.
     await expect(page.getByText('Qase')).toHaveCount(0);
+    // Results can go into a Testboard run.
+    await page.getByRole('button', { name: /Testboard run/ }).click();
+    await expect(page.getByRole('option', { name: 'Create a new run' })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'Don’t write to a run' })).toBeVisible();
     await expect(page.getByText('Skip visual checks')).toBeVisible();
     await expect(page.getByText('Re-collect snapshots even if baselines exist')).toBeVisible();
   });

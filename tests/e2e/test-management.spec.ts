@@ -202,6 +202,45 @@ test.describe('test management', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'Priority pick' })).toContainText('High');
   });
 
+  test('a case shows its latest autotest result', async ({ page, request }) => {
+    const key = `e2e-auto-${String(Date.now()).slice(-6)}`;
+    const headers = { Authorization: E2E_API_TOKEN };
+    const post = async (path: string, data: unknown) => (await request.post(path, { headers, data })).json();
+
+    await post('/api/tm/projects', { key, name: `Auto ${key}`, code: 'AUT' });
+    const suite = await post(`/api/tm/projects/${key}/suites`, { name: 'S' });
+    const kase = await post(`/api/tm/projects/${key}/cases`, { suiteId: suite.id, title: 'Covered by an autotest' });
+
+    // The sync itself is unit-tested; here the panel gets a stored result as the API would return it.
+    await page.route(`**/api/tm/cases/${kase.id}`, async (route) => {
+      const response = await route.fetch();
+      const body = await response.json();
+
+      await route.fulfill({
+        response,
+        json: {
+          ...body,
+          autoResult: {
+            result: 'failed',
+            reportId: 'rep-1',
+            reportUrl: '/api/serve/hanimax/rep-1/index.html',
+            tests: ['login works', 'login retries'],
+            recordedAt: new Date().toISOString(),
+          },
+        },
+      });
+    });
+
+    await page.goto(`/cases/${key}`);
+    await page.getByText('Covered by an autotest').click();
+    const panel = page.getByRole('dialog');
+
+    await expect(panel.getByText('Autotest:')).toBeVisible();
+    await expect(panel.getByText('Failed')).toBeVisible();
+    await expect(panel.getByRole('link', { name: 'Open report' })).toHaveAttribute('href', /rep-1\/index\.html$/);
+    await expect(panel.getByText('login works · login retries')).toBeVisible();
+  });
+
   test('renaming a project keeps its key and code', async ({ page, request }) => {
     const key = `e2e-ren-${String(Date.now()).slice(-6)}`;
 
