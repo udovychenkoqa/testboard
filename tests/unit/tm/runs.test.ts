@@ -3,7 +3,7 @@ import { TmError } from '@/app/lib/tm/errors';
 import { createProject } from '@/app/lib/tm/projects';
 import { createSuite } from '@/app/lib/tm/suites';
 import { createCase, updateCase } from '@/app/lib/tm/cases';
-import { completeRun, createRun, getRun, listRuns, updateRunCase } from '@/app/lib/tm/runs';
+import { completeRun, createRun, getRun, listActiveRuns, listRuns, updateRunCase } from '@/app/lib/tm/runs';
 
 let db: TmDb;
 let projectId: number;
@@ -111,5 +111,26 @@ describe('runs', () => {
     expect(done.status).toBe('completed');
     expect(done.completedAt).toBeTruthy();
     expect(code(() => updateRunCase(db, rc.id, { result: 'passed' }, 'qa'))).toBe('invalid');
+  });
+});
+
+describe('listActiveRuns', () => {
+  it('lists in-progress runs of every project, newest first, with their project', () => {
+    const db = openDb(':memory:');
+    const a = createProject(db, { key: 'hanimax', name: 'HanimaX', code: 'HAN' }).id;
+    const b = createProject(db, { key: 'other', name: 'Other', code: 'OTH' }).id;
+
+    for (const projectId of [a, b]) {
+      createCase(db, projectId, { suiteId: createSuite(db, { projectId, name: 'S' }).id, title: 'c' }, 't');
+    }
+    const r1 = createRun(db, { projectId: a, name: 'Smoke', source: { type: 'all' }, by: 't' });
+    const done = createRun(db, { projectId: a, name: 'Done', source: { type: 'all' }, by: 't' });
+    const r3 = createRun(db, { projectId: b, name: 'Regress', source: { type: 'all' }, by: 't' });
+
+    completeRun(db, done.id);
+    expect(listActiveRuns(db)).toEqual([
+      { id: r3.id, name: 'Regress', projectKey: 'other', projectName: 'Other' },
+      { id: r1.id, name: 'Smoke', projectKey: 'hanimax', projectName: 'HanimaX' },
+    ]);
   });
 });

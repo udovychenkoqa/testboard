@@ -250,3 +250,19 @@ export const completeRun = (db: TmDb, id: number): RunSummary => {
 
   return toSummary(db, getRunRow(db, id));
 };
+
+export interface ActiveRun {
+  id: number;
+  name: string;
+  projectKey: string;
+  projectName: string;
+}
+
+// In-progress runs of every project, newest first — what autotests can report into.
+export const listActiveRuns = (db: TmDb): ActiveRun[] =>
+  db
+    .prepare(
+      `SELECT r.id, r.name, p.key AS projectKey, p.name AS projectName FROM tm_runs r JOIN tm_projects p ON p.id = r.project_id
+       WHERE r.status = 'in_progress' ORDER BY r.id DESC`,
+    )
+    .all() as ActiveRun[];

@@ -27,6 +27,7 @@ import { defaultConfig } from '@/app/lib/config';
 import { env } from '@/app/config/env';
 import { type S3 } from '@/app/lib/storage/s3';
 import { isValidPlaywrightVersion } from '@/app/lib/pw';
+import { type SyncableReport } from '@/app/lib/tm/automation';
 
 const reportConfigReadError = createConfigReadLogger();
 
@@ -219,6 +220,20 @@ class Service {
     // failures — exactly when the summary is worth waiting for — does the
     // notification wait out the LLM call. Each stage's error is isolated so a
     // failed summary never suppresses the notification.
+    // Test management: copy this report's results onto the cases its tests are tagged with (@HAN-12) and,
+    // when the autotests named a Testboard run, into that run. Isolated: a sync problem never affects the
+    // report. Dynamic import keeps SQLite out of storage-only code paths.
+    void (async () => {
+      const [{ syncReport }, { getDb }] = await Promise.all([import('../tm/automation'), import('../tm/db')]);
+      const summary = syncReport(getDb(), { ...(report as unknown as SyncableReport), reportUrl });
+
+      if (summary.linkedCases || summary.unknownTags.length) {
+        console.log(`[tm-sync] report ${reportId}: ${JSON.stringify(summary)}`);
+      }
+    })().catch((error) => {
+      console.error(`[tm-sync] report ${reportId}: ${error}`);
+    });
+
     void (async () => {
       const config = await this.getConfig();
 

@@ -295,7 +295,11 @@
       "emptyTitle": "Звітів автотестів ще немає",
       "emptyDescription": "Щойно автотести завантажать результати, кожен прогін з’явиться тут із посиланням на звіт.",
       "counts": "✓ {passed} · ✗ {failed} · ~ {flaky}"
-    }
+    },
+    "testboardRun": "Прогін Testboard",
+    "testboardRunHint": "Автотести запишуть результати кейсів, які вони покривають (тег @CODE-N), у цей прогін.",
+    "testboardRunNone": "Не записувати в прогін",
+    "testboardRunNew": "Створити новий прогін"
   },
   "settings": {
     "page": {
@@ -632,7 +636,9 @@
       "caseCreated": "Кейс {label} створено",
       "moved": "Кейси перенесено",
       "readOnly": "Ви можете переглядати тест-кейси; для редагування потрібна роль tester або admin.",
-      "dragCount": "{count, plural, one {# кейс} few {# кейси} many {# кейсів} other {# кейсу}}"
+      "dragCount": "{count, plural, one {# кейс} few {# кейси} many {# кейсів} other {# кейсу}}",
+      "autoResult": "Автотест:",
+      "openReport": "Відкрити звіт"
     }
   }
 }

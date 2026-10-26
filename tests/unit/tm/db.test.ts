@@ -4,7 +4,16 @@ import { mkdtempSync, rmSync } from 'node:fs';
 
 import { openDb } from '@/app/lib/tm/db';
 
-const TABLES = ['tm_case_steps', 'tm_case_tags', 'tm_cases', 'tm_projects', 'tm_run_cases', 'tm_runs', 'tm_suites'];
+const TABLES = [
+  'tm_case_auto_results',
+  'tm_case_steps',
+  'tm_case_tags',
+  'tm_cases',
+  'tm_projects',
+  'tm_run_cases',
+  'tm_runs',
+  'tm_suites',
+];
 
 describe('tm database', () => {
   it('creates every tm_* table and enables foreign keys', () => {

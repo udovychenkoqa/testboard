@@ -9,6 +9,7 @@ describe('trigger inputs', () => {
       tag: '@smoke',
       force_snapshots_recollection: false,
       skip_visual_checks: true,
+      testboard_run: '',
     });
     expect(triggerInputs.parse({})).toEqual(DEFAULT_INPUTS);
   });
@@ -26,13 +27,19 @@ describe('trigger inputs', () => {
     expect(parsed.tag).toBe('@api, @visual');
   });
 
-  it.each([
-    [{ env: 'test' }],
-    [{ mode: 'nightly' }],
-    [{ tag: 'x'.repeat(201) }],
-    [{ skip_visual_checks: 'yes' }],
-  ])('rejects %j', (input) => {
-    expect(triggerInputs.safeParse(input).success).toBe(false);
+  it.each([[{ env: 'test' }], [{ mode: 'nightly' }], [{ tag: 'x'.repeat(201) }], [{ skip_visual_checks: 'yes' }]])(
+    'rejects %j',
+    (input) => {
+      expect(triggerInputs.safeParse(input).success).toBe(false);
+    },
+  );
+
+  it.each(['', 'new', '42'])('accepts testboard_run %j', (value) => {
+    expect(triggerInputs.parse({ testboard_run: value }).testboard_run).toBe(value);
+  });
+
+  it.each(['abc', '-1', '4 2'])('rejects testboard_run %j', (value) => {
+    expect(triggerInputs.safeParse({ testboard_run: value }).success).toBe(false);
   });
 
   it('does not send Qase inputs: the autotests report to Testboard, not Qase', () => {

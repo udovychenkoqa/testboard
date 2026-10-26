@@ -15,6 +15,8 @@ export interface TriggerInputs {
   tag: string;
   force_snapshots_recollection: boolean;
   skip_visual_checks: boolean;
+  // Testboard run the results go into: '' none, 'new' create one, or an in-progress run id.
+  testboard_run: string;
 }
 
 export const DEFAULT_INPUTS: TriggerInputs = {
@@ -23,4 +25,5 @@ export const DEFAULT_INPUTS: TriggerInputs = {
   tag: '@smoke',
   force_snapshots_recollection: false,
   skip_visual_checks: true,
+  testboard_run: '',
 };

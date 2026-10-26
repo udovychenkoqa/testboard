@@ -71,6 +71,7 @@ describe('/api/autotests routes', () => {
       tag: '@api',
       force_snapshots_recollection: false,
       skip_visual_checks: true,
+      testboard_run: '',
     });
     expect(getPipelineRecords(db, [901]).get(901)?.startedBy).toBe('qa@hanimax.com');
   });

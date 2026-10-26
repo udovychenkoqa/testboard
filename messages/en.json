@@ -295,7 +295,11 @@
       "emptyTitle": "No autotest reports yet",
       "emptyDescription": "Once the autotests upload their results, each run shows up here with a link to its report.",
       "counts": "✓ {passed} · ✗ {failed} · ~ {flaky}"
-    }
+    },
+    "testboardRun": "Testboard run",
+    "testboardRunHint": "Autotests write the results of the cases they cover (tag @CODE-N) into this run.",
+    "testboardRunNone": "Don’t write to a run",
+    "testboardRunNew": "Create a new run"
   },
   "settings": {
     "page": {
@@ -632,7 +636,9 @@
       "caseCreated": "Case {label} created",
       "moved": "Cases moved",
       "readOnly": "You can view test cases; editing needs the tester or admin role.",
-      "dragCount": "{count, plural, one {# case} other {# cases}}"
+      "dragCount": "{count, plural, one {# case} other {# cases}}",
+      "autoResult": "Autotest:",
+      "openReport": "Open report"
     }
   }
 }

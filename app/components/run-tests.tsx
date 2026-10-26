@@ -1,5 +1,7 @@
 'use client';
 
+import type { ActiveRun } from '@/app/lib/tm/runs';
+
 import { useEffect, useMemo, useState } from 'react';
 import { Avatar, Button, Input, Link, Pagination, SelectItem, Spinner, Switch } from '@heroui/react';
 import { useSession } from 'next-auth/react';
@@ -30,6 +32,8 @@ import {
 } from '@/app/lib/autotests/inputs';
 
 const PREFS_KEY = 'run-tests-prefs';
+// Select keys can't be empty; stands for testboard_run ''.
+const NO_RUN = 'none';
 
 // Message keys can't contain spaces, so the "by tag" mode gets a camelCase key.
 const MODE_KEY: Record<Mode, 'byTag' | 'smoke' | 'regression'> = {
@@ -202,6 +206,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   });
 
   const builds = useMemo(() => data?.builds ?? [], [data]);
+  const { data: activeRuns = [] } = useQuery<ActiveRun[]>('/api/tm/runs/active');
   const activeBuilds = useMemo(() => builds.filter((b) => isActive(b.status)), [builds]);
 
   // Live clock: ticks every second only while something is running, so the
@@ -385,6 +390,32 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
             {showAdvanced && (
               <div className="mt-3 rounded-lg border border-dashed border-default-300 bg-default-50 p-4">
                 <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2">
+                  <Select
+                    disallowEmptySelection
+                    className="md:col-span-2"
+                    classNames={{ trigger: 'h-8 min-h-8' }}
+                    description={t('testboardRunHint')}
+                    label={t('testboardRun')}
+                    labelPlacement="outside"
+                    selectedKeys={[inputs.testboard_run || NO_RUN]}
+                    size="sm"
+                    variant="bordered"
+                    onSelectionChange={(keys) => {
+                      const value = Array.from(keys)[0] as string | undefined;
+
+                      if (value) set('testboard_run', value === NO_RUN ? '' : value);
+                    }}
+                  >
+                    {[
+                      <SelectItem key={NO_RUN}>{t('testboardRunNone')}</SelectItem>,
+                      <SelectItem key="new">{t('testboardRunNew')}</SelectItem>,
+                      ...activeRuns.map((run) => (
+                        <SelectItem key={String(run.id)} textValue={`${run.projectName} · ${run.name}`}>
+                          {run.projectName} · {run.name}
+                        </SelectItem>
+                      )),
+                    ]}
+                  </Select>
                   <Switch
                     isSelected={inputs.skip_visual_checks}
                     size="sm"

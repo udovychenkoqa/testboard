@@ -1,6 +1,7 @@
 'use client';
 
-import type { CaseDetail, CaseInput, StepInput, TagUsage } from '@/app/lib/tm/cases';
+import type { AutoResultView } from '@/app/lib/tm/automation';
+import type { CaseDetail as BaseCaseDetail, CaseInput, StepInput, TagUsage } from '@/app/lib/tm/cases';
 import type { SuiteNode } from '@/app/lib/tm/suites';
 
 import { useEffect, useState } from 'react';
@@ -21,10 +22,15 @@ import { toast } from 'sonner';
 
 import { Select } from '@/app/components/ui/select';
 import { applyTag, suggestTags } from '@/app/lib/tm/tag-suggestions';
+import { ResultBadge } from '@/app/components/tm/result';
+import { withBase } from '@/app/lib/url';
 import FormattedDate from '@/app/components/date-format';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { AUTOMATION, CASE_STATUSES, PRIORITIES } from '@/app/lib/tm/constants';
+
+// GET /api/tm/cases/:id adds the latest automated result.
+type CaseDetail = BaseCaseDetail & { autoResult?: AutoResultView | null };
 
 type Mode = { kind: 'new'; suiteId: number } | { kind: 'edit'; caseId: number };
 
@@ -320,6 +326,29 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
                   </div>
                 )}
               </div>
+              {current?.autoResult && mode?.kind === 'edit' && (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-divider bg-content2 px-3 py-2 text-[12px]">
+                  <span className="font-medium">{t('cases.autoResult')}</span>
+                  <ResultBadge value={current.autoResult.result} />
+                  <span className="text-default-500">
+                    <FormattedDate relativeDay date={new Date(current.autoResult.recordedAt)} />
+                  </span>
+                  <a
+                    className="text-primary hover:underline"
+                    href={withBase(current.autoResult.reportUrl)}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {t('cases.openReport')}
+                  </a>
+                  <span
+                    className="w-full truncate text-[11.5px] text-default-400"
+                    title={current.autoResult.tests.join('\n')}
+                  >
+                    {current.autoResult.tests.join(' · ')}
+                  </span>
+                </div>
+              )}
               {current && mode?.kind === 'edit' && (
                 <p className="text-[11.5px] text-default-400">
                   {t('cases.createdBy', { who: current.createdBy })} ·{' '}
