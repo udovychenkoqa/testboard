@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { E2E_BASE_URL } from '../../playwright.config';
 
-import { useLanguage } from './helpers';
+import { loadSeed, useLanguage } from './helpers';
 
 test.describe('Automated runs (GitLab)', () => {
   test.beforeEach(async ({ context }) => {
@@ -26,5 +26,27 @@ test.describe('Automated runs (GitLab)', () => {
     await expect(page.getByRole('textbox', { name: 'Qase case IDs' })).toBeVisible();
     await expect(page.getByText('Skip visual checks')).toBeVisible();
     await expect(page.getByText('Re-collect snapshots even if baselines exist')).toBeVisible();
+  });
+
+  test('without GitLab the tab still shows the form and runs from uploaded reports', async ({ page }) => {
+    const { reportId } = await loadSeed();
+
+    await page.route('**/api/autotests/builds*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ enabled: false, builds: [] }),
+      }),
+    );
+    await page.goto('/runs/automated');
+
+    await expect(
+      page.getByText('Running from Testboard becomes available once GitLab is connected', { exact: false }),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: /Environment/ })).toBeVisible();
+
+    await expect(page.getByText('Recent autotest runs')).toBeVisible();
+    await expect(page.locator(`a[href$="/report/${reportId}"]`)).toBeVisible();
   });
 });

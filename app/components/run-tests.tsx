@@ -8,6 +8,7 @@ import { ChevronDown, Play, RotateCw, CirclePlay, SearchX, Settings } from 'luci
 import { useTranslations } from 'next-intl';
 
 import { Select } from '@/app/components/ui/select';
+import { ReportRuns } from '@/app/components/report-runs';
 import useQuery from '@/app/hooks/useQuery';
 import useMutation from '@/app/hooks/useMutation';
 import { STATUS_COLORS } from '@/app/lib/tailwind';
@@ -294,16 +295,9 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
     { key: 'actions', label: '' },
   ];
 
-  if (data && !data.enabled) {
-    return (
-      <div className="flex flex-col rr-enter">
-        {!embedded && <PageHeader title={t('title')} />}
-        <div className="p-5">
-          <EmptyState description={t('notConfiguredDescription')} icon={CirclePlay} title={t('notConfiguredTitle')} />
-        </div>
-      </div>
-    );
-  }
+  // GitLab not connected: the form stays visible (Run disabled) and the history comes from uploaded reports,
+  // so the tab still shows real autotest runs.
+  const gitlabOff = data?.enabled === false;
 
   return (
     <div className="flex flex-col rr-enter">
@@ -382,6 +376,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
               <Button
                 className="h-8 px-5 md:mt-6"
                 color="primary"
+                isDisabled={gitlabOff}
                 isLoading={isTriggering}
                 startContent={!isTriggering && <Play size={13} />}
                 onPress={run}
@@ -459,6 +454,13 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
           </div>
         </div>
 
+        {gitlabOff && (
+          <p className="flex items-start gap-2 rounded-lg border border-divider bg-content2 px-4 py-2.5 text-[12.5px] text-default-600">
+            <CirclePlay className="mt-0.5 shrink-0 text-default-400" size={14} />
+            {t('gitlabNotice')}
+          </p>
+        )}
+
         {/* Active run — slim strip per pipeline */}
         {activeBuilds.map((build) => (
           <div
@@ -488,147 +490,153 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
           </div>
         ))}
 
-        {/* History */}
-        <div className="rounded-lg border border-divider bg-content1">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider px-4 py-2.5">
-            <span className="text-[12.5px] font-medium">{t('recentRuns')}</span>
-            <div className="flex flex-wrap items-center gap-2">
-              <Segmented
-                options={STATUS_FILTERS.map((key) => ({ key, label: t(`status.${key}`) }))}
-                value={statusFilter}
-                onChange={setStatusFilter}
-              />
-              <FilterChip label={t('env')} value={envFilter === 'all' ? 'all' : envFilter}>
-                <div className="flex w-32 flex-col gap-0.5 p-1">
-                  {['all', ...ENVIRONMENTS].map((envName) => (
-                    <button
-                      key={envName}
-                      className={`rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-default-100 ${
-                        envName === envFilter ? 'font-semibold text-primary' : 'text-foreground'
-                      }`}
-                      type="button"
-                      onClick={() => setEnvFilter(envName)}
-                    >
-                      {envName === 'all' ? t('allEnvs') : envName}
-                    </button>
-                  ))}
+        {gitlabOff ? (
+          <ReportRuns />
+        ) : (
+          <>
+            {/* History */}
+            <div className="rounded-lg border border-divider bg-content1">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider px-4 py-2.5">
+                <span className="text-[12.5px] font-medium">{t('recentRuns')}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Segmented
+                    options={STATUS_FILTERS.map((key) => ({ key, label: t(`status.${key}`) }))}
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                  />
+                  <FilterChip label={t('env')} value={envFilter === 'all' ? 'all' : envFilter}>
+                    <div className="flex w-32 flex-col gap-0.5 p-1">
+                      {['all', ...ENVIRONMENTS].map((envName) => (
+                        <button
+                          key={envName}
+                          className={`rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-default-100 ${
+                            envName === envFilter ? 'font-semibold text-primary' : 'text-foreground'
+                          }`}
+                          type="button"
+                          onClick={() => setEnvFilter(envName)}
+                        >
+                          {envName === 'all' ? t('allEnvs') : envName}
+                        </button>
+                      ))}
+                    </div>
+                  </FilterChip>
+                  {currentUser && (
+                    <Switch isSelected={mineOnly} size="sm" onValueChange={setMineOnly}>
+                      <span className="text-[12.5px]">{t('onlyMine')}</span>
+                    </Switch>
+                  )}
                 </div>
-              </FilterChip>
-              {currentUser && (
-                <Switch isSelected={mineOnly} size="sm" onValueChange={setMineOnly}>
-                  <span className="text-[12.5px]">{t('onlyMine')}</span>
-                </Switch>
+              </div>
+
+              <div className="px-4 py-2 text-[11.5px] text-default-400">
+                {data?.error && <p className="mb-1 text-danger">{data.error}</p>}
+                {activeBuilds.length > 0 && t('active', { count: activeBuilds.length })}
+                {t('successfulOnPage', { ok: successCount, total: builds.length })}
+              </div>
+
+              {isPending ? (
+                <GridSkeleton rowHeight={44} rows={8} />
+              ) : builds.length === 0 ? (
+                <EmptyState
+                  action={
+                    <Button color="primary" isLoading={isTriggering} size="sm" onPress={run}>
+                      {t('empty.startFirst')}
+                    </Button>
+                  }
+                  description={t('empty.noRunsDescription')}
+                  icon={CirclePlay}
+                  title={t('empty.noRunsTitle')}
+                />
+              ) : filtered.length === 0 ? (
+                <EmptyState
+                  action={
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      onPress={() => {
+                        setStatusFilter('all');
+                        setEnvFilter('all');
+                        setMineOnly(false);
+                      }}
+                    >
+                      {tc('clearFilters')}
+                    </Button>
+                  }
+                  description={t('empty.noMatchDescription')}
+                  icon={SearchX}
+                  title={t('empty.noMatchTitle')}
+                />
+              ) : (
+                <DataGrid columns={gridColumns} template={HISTORY_TEMPLATE}>
+                  {filtered.map((build) => (
+                    <GridRow
+                      key={build.id}
+                      accent={statusHex(statusColor(build.status))}
+                      className="h-11"
+                      template={HISTORY_TEMPLATE}
+                    >
+                      <Link isExternal showAnchorIcon className="font-mono text-[12px]" href={build.link} size="sm">
+                        #{build.iid}
+                      </Link>
+                      <StatusCell status={build.status} />
+                      <div className="min-w-0 pr-2">
+                        <ParamChips build={build} modeLabel={modeLabel} />
+                      </div>
+                      <StartedBy build={build} />
+                      <span
+                        className="truncate text-[11.5px] text-default-500"
+                        title={new Date(build.createdAt).toLocaleString(intl)}
+                      >
+                        {formatAgo(new Date(build.createdAt), ago, new Date(now))}
+                      </span>
+                      <span className="text-right font-mono text-[11.5px] tabular-nums text-default-500">
+                        {duration(build)}
+                      </span>
+                      <div className="flex justify-end">
+                        {/* Only pipelines started from Testboard (known inputs) can be cancelled or rerun here. */}
+                        {!build.inputs ? null : isActive(build.status) ? (
+                          <Button
+                            color="danger"
+                            isLoading={cancelling === build.id}
+                            size="sm"
+                            variant="flat"
+                            onPress={() => cancelBuild(build.id)}
+                          >
+                            {t('cancel')}
+                          </Button>
+                        ) : (
+                          <Button
+                            isIconOnly
+                            aria-label={t('rerun')}
+                            size="sm"
+                            title={t('rerun')}
+                            variant="flat"
+                            onPress={() => rerun({ body: { id: build.id } })}
+                          >
+                            <RotateCw size={14} />
+                          </Button>
+                        )}
+                      </div>
+                    </GridRow>
+                  ))}
+                </DataGrid>
+              )}
+
+              {(data?.total ?? 0) > (data?.perPage ?? 10) && (
+                <div className="flex w-full justify-center border-t border-divider py-3">
+                  <Pagination
+                    isCompact
+                    showControls
+                    color="primary"
+                    page={page}
+                    total={Math.ceil((data?.total ?? 0) / (data?.perPage ?? 10))}
+                    onChange={setPage}
+                  />
+                </div>
               )}
             </div>
-          </div>
-
-          <div className="px-4 py-2 text-[11.5px] text-default-400">
-            {data?.error && <p className="mb-1 text-danger">{data.error}</p>}
-            {activeBuilds.length > 0 && t('active', { count: activeBuilds.length })}
-            {t('successfulOnPage', { ok: successCount, total: builds.length })}
-          </div>
-
-          {isPending ? (
-            <GridSkeleton rowHeight={44} rows={8} />
-          ) : builds.length === 0 ? (
-            <EmptyState
-              action={
-                <Button color="primary" isLoading={isTriggering} size="sm" onPress={run}>
-                  {t('empty.startFirst')}
-                </Button>
-              }
-              description={t('empty.noRunsDescription')}
-              icon={CirclePlay}
-              title={t('empty.noRunsTitle')}
-            />
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              action={
-                <Button
-                  size="sm"
-                  variant="bordered"
-                  onPress={() => {
-                    setStatusFilter('all');
-                    setEnvFilter('all');
-                    setMineOnly(false);
-                  }}
-                >
-                  {tc('clearFilters')}
-                </Button>
-              }
-              description={t('empty.noMatchDescription')}
-              icon={SearchX}
-              title={t('empty.noMatchTitle')}
-            />
-          ) : (
-            <DataGrid columns={gridColumns} template={HISTORY_TEMPLATE}>
-              {filtered.map((build) => (
-                <GridRow
-                  key={build.id}
-                  accent={statusHex(statusColor(build.status))}
-                  className="h-11"
-                  template={HISTORY_TEMPLATE}
-                >
-                  <Link isExternal showAnchorIcon className="font-mono text-[12px]" href={build.link} size="sm">
-                    #{build.iid}
-                  </Link>
-                  <StatusCell status={build.status} />
-                  <div className="min-w-0 pr-2">
-                    <ParamChips build={build} modeLabel={modeLabel} />
-                  </div>
-                  <StartedBy build={build} />
-                  <span
-                    className="truncate text-[11.5px] text-default-500"
-                    title={new Date(build.createdAt).toLocaleString(intl)}
-                  >
-                    {formatAgo(new Date(build.createdAt), ago, new Date(now))}
-                  </span>
-                  <span className="text-right font-mono text-[11.5px] tabular-nums text-default-500">
-                    {duration(build)}
-                  </span>
-                  <div className="flex justify-end">
-                    {/* Only pipelines started from Testboard (known inputs) can be cancelled or rerun here. */}
-                    {!build.inputs ? null : isActive(build.status) ? (
-                      <Button
-                        color="danger"
-                        isLoading={cancelling === build.id}
-                        size="sm"
-                        variant="flat"
-                        onPress={() => cancelBuild(build.id)}
-                      >
-                        {t('cancel')}
-                      </Button>
-                    ) : (
-                      <Button
-                        isIconOnly
-                        aria-label={t('rerun')}
-                        size="sm"
-                        title={t('rerun')}
-                        variant="flat"
-                        onPress={() => rerun({ body: { id: build.id } })}
-                      >
-                        <RotateCw size={14} />
-                      </Button>
-                    )}
-                  </div>
-                </GridRow>
-              ))}
-            </DataGrid>
-          )}
-
-          {(data?.total ?? 0) > (data?.perPage ?? 10) && (
-            <div className="flex w-full justify-center border-t border-divider py-3">
-              <Pagination
-                isCompact
-                showControls
-                color="primary"
-                page={page}
-                total={Math.ceil((data?.total ?? 0) / (data?.perPage ?? 10))}
-                onChange={setPage}
-              />
-            </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

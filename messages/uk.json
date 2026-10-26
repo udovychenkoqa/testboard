@@ -242,8 +242,6 @@
   },
   "runTests": {
     "title": "Запуск тестів",
-    "notConfiguredTitle": "Запуск автотестів не налаштовано",
-    "notConfiguredDescription": "Задайте GITLAB_URL, GITLAB_TOKEN і GITLAB_AUTOTESTS_PROJECT на сервері, щоб запускати автотести звідси.",
     "environment": "Середовище",
     "tag": "Тег",
     "run": "Запустити",
@@ -293,7 +291,15 @@
     "forceSnapshots": "Перезібрати скріншоти, навіть якщо еталони є",
     "skipVisual": "Пропустити візуальні перевірки",
     "openInGitlab": "Відкрити в GitLab",
-    "rerunStarted": "Пайплайн #{number} запущено повторно"
+    "rerunStarted": "Пайплайн #{number} запущено повторно",
+    "gitlabNotice": "Запуск з Testboard з’явиться після підключення GitLab (GITLAB_URL, GITLAB_TOKEN, GITLAB_AUTOTESTS_PROJECT на сервері). Нижче — прогони автотестів, які вже надійшли в Testboard.",
+    "fromReports": {
+      "title": "Останні прогони автотестів",
+      "hint": "Зі звітів, які автотести надіслали в Testboard",
+      "emptyTitle": "Звітів автотестів ще немає",
+      "emptyDescription": "Щойно автотести завантажать результати, кожен прогін з’явиться тут із посиланням на звіт.",
+      "counts": "✓ {passed} · ✗ {failed} · ~ {flaky}"
+    }
   },
   "settings": {
     "page": {

@@ -242,8 +242,6 @@
   },
   "runTests": {
     "title": "Run Tests",
-    "notConfiguredTitle": "Running autotests isn't set up",
-    "notConfiguredDescription": "Set GITLAB_URL, GITLAB_TOKEN and GITLAB_AUTOTESTS_PROJECT on the server to run autotests from here.",
     "environment": "Environment",
     "tag": "Tag",
     "run": "Run",
@@ -293,7 +291,15 @@
     "forceSnapshots": "Re-collect snapshots even if baselines exist",
     "skipVisual": "Skip visual checks",
     "openInGitlab": "Open in GitLab",
-    "rerunStarted": "Pipeline #{number} started again"
+    "rerunStarted": "Pipeline #{number} started again",
+    "gitlabNotice": "Running from Testboard becomes available once GitLab is connected (GITLAB_URL, GITLAB_TOKEN, GITLAB_AUTOTESTS_PROJECT on the server). Below are the autotest runs Testboard has already received.",
+    "fromReports": {
+      "title": "Recent autotest runs",
+      "hint": "From the reports the autotests sent to Testboard",
+      "emptyTitle": "No autotest reports yet",
+      "emptyDescription": "Once the autotests upload their results, each run shows up here with a link to its report.",
+      "counts": "✓ {passed} · ✗ {failed} · ~ {flaky}"
+    }
   },
   "settings": {
     "page": {
