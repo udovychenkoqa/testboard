@@ -11,7 +11,9 @@ import { resolveRole, ROLES, type Role } from './lib/access';
 // was dropped — the old "jwt" tokens were never verified, only checked for
 // presence, so an opaque marker is equivalent and keeps this edge-bundlable).
 
-const secret = env.AUTH_SECRET ?? 'default-secret-for-non-auth-mode';
+// With auth on, a missing AUTH_SECRET must fail (Auth.js rejects an undefined secret) instead of
+// silently signing sessions with a public constant. The constant only serves open mode.
+const secret = env.AUTH_SECRET ?? (AUTH_ENABLED ? undefined : 'default-secret-for-non-auth-mode');
 const expirationHours = env.UI_AUTH_EXPIRE_HOURS ? parseInt(env.UI_AUTH_EXPIRE_HOURS) : 2;
 const expirationSeconds = expirationHours * 60 * 60;
 

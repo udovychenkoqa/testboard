@@ -27,6 +27,7 @@ import { defaultConfig, isConfigValid, noConfigErr } from '@/app/lib/config';
 import { parse } from '@/app/lib/parser';
 import { generatePlaywrightReport } from '@/app/lib/pw';
 import { withError } from '@/app/lib/withError';
+import { resolveInside } from '@/app/lib/safePath';
 import { serveReportRoute } from '@/app/lib/constants';
 import {
   type Storage,
@@ -90,7 +91,7 @@ export async function getServerDataInfo(): Promise<ServerDataInfo> {
 }
 
 export async function readFile(targetPath: string, contentType: string | null) {
-  return await fs.readFile(path.join(REPORTS_FOLDER, targetPath), {
+  return await fs.readFile(resolveInside(REPORTS_FOLDER, targetPath), {
     encoding: contentType === 'text/html' ? 'utf-8' : null,
   });
 }
@@ -357,7 +358,7 @@ export async function deleteResults(resultsIds: string[]) {
 }
 
 export async function deleteResult(resultId: string) {
-  const resultPath = path.join(RESULTS_FOLDER, resultId);
+  const resultPath = resolveInside(RESULTS_FOLDER, resultId);
 
   await Promise.allSettled([fs.unlink(`${resultPath}.json`), fs.unlink(`${resultPath}.zip`)]);
 }
@@ -374,14 +375,14 @@ export async function deleteReports(reportsIds: string[]) {
 }
 
 export async function deleteReport(reportId: string) {
-  const reportPath = path.join(REPORTS_FOLDER, reportId);
+  const reportPath = resolveInside(REPORTS_FOLDER, reportId);
 
   await fs.rm(reportPath, { recursive: true, force: true });
 }
 
 export async function saveResult(filename: string, stream: PassThrough) {
   await createDirectoriesIfMissing();
-  const resultPath = path.join(RESULTS_FOLDER, filename);
+  const resultPath = resolveInside(RESULTS_FOLDER, filename);
 
   const writeable = createWriteStream(resultPath, {
     encoding: 'binary',
@@ -408,7 +409,7 @@ export async function saveResultDetails(resultID: string, resultDetails: ResultD
   };
 
   const { error: writeJsonError } = await withError(
-    fs.writeFile(path.join(RESULTS_FOLDER, `${resultID}.json`), JSON.stringify(metaData, null, 2), {
+    fs.writeFile(resolveInside(RESULTS_FOLDER, `${resultID}.json`), JSON.stringify(metaData, null, 2), {
       encoding: 'utf-8',
     }),
   );
@@ -430,7 +431,7 @@ export async function generateReport(resultsIds: string[], metadata?: ReportMeta
 
   try {
     for (const id of resultsIds) {
-      await fs.copyFile(path.join(RESULTS_FOLDER, `${id}.zip`), path.join(tempFolder, `${id}.zip`));
+      await fs.copyFile(resolveInside(RESULTS_FOLDER, `${id}.zip`), path.join(tempFolder, `${id}.zip`));
     }
     const generated = await generatePlaywrightReport(reportId, metadata!);
     const info = await parseReportMetadata(reportId, generated.reportPath, metadata);
