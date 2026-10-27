@@ -6,7 +6,6 @@ let db: TmDb;
 jest.mock('@/app/lib/gitlab', () => ({
   isGitlabConfigured: jest.fn(),
   createPipeline: jest.fn(),
-  retryPipeline: jest.fn(),
   cancelPipeline: jest.fn(),
   listPipelines: jest.fn(),
 }));
@@ -19,7 +18,7 @@ import { POST as cancel } from '@/app/api/autotests/cancel/route';
 import { GET as builds } from '@/app/api/autotests/builds/route';
 
 const gitlab = jest.requireMock('@/app/lib/gitlab') as Record<
-  'isGitlabConfigured' | 'createPipeline' | 'retryPipeline' | 'cancelPipeline' | 'listPipelines',
+  'isGitlabConfigured' | 'createPipeline' | 'cancelPipeline' | 'listPipelines',
   jest.Mock
 >;
 
@@ -105,7 +104,6 @@ describe('/api/autotests routes', () => {
 
     expect(res.status).toBe(200);
     expect(gitlab.createPipeline).toHaveBeenCalledWith(inputs);
-    expect(gitlab.retryPipeline).not.toHaveBeenCalled();
     expect(getPipelineRecords(db, [905]).get(905)).toEqual({ startedBy: 'qa@hanimax.com', inputs });
   });
 
@@ -113,7 +111,6 @@ describe('/api/autotests routes', () => {
     const res = await rerun(post({ id: 700 }));
 
     expect(res.status).toBe(403);
-    expect(gitlab.retryPipeline).not.toHaveBeenCalled();
     expect(gitlab.createPipeline).not.toHaveBeenCalled();
   });
 
