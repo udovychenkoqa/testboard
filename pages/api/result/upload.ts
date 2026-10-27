@@ -6,10 +6,13 @@ import { randomUUID } from 'node:crypto';
 
 import Busboy from 'busboy';
 
+import { env } from '@/app/config/env';
 import { service } from '@/app/lib/service';
 import { DEFAULT_STREAM_CHUNK_SIZE } from '@/app/lib/storage/constants';
 import { stripReservedMetadata } from '@/app/lib/reservedMetadata';
 import { withError } from '@/app/lib/withError';
+
+const MAX_UPLOAD_BYTES = env.MAX_UPLOAD_MB * 1024 * 1024;
 
 export const config = { api: { bodyParser: false } };
 
@@ -44,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers: req.headers,
     limits: {
       files: 1,
+      ...(MAX_UPLOAD_BYTES > 0 ? { fileSize: MAX_UPLOAD_BYTES } : {}),
       // Free-form metadata only: a few dozen short strings, never megabytes of fields.
       fields: 100,
       fieldSize: 64 * 1024,
@@ -69,6 +73,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     bb.on('file', (_, fileStream) => {
       fileReceived = true;
+
+      fileStream.on('limit', () => {
+        reject(new Error(`File is larger than the ${env.MAX_UPLOAD_MB} MB upload limit`));
+        fileStream.destroy();
+      });
 
       saveResultPromise = service
         .saveResult(fileName, filePassThrough, presignedUrl, contentLength)
@@ -142,6 +151,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!filePassThrough.destroyed) {
       filePassThrough.destroy();
     }
+
+    // A rejected upload must not leave a partial zip behind.
+    await service.deleteResults([resultID]);
 
     res.status(400).json({ error: `upload result failed: ${uploadError.message}` });
 

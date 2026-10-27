@@ -64,11 +64,15 @@ export async function GET(
     'Content-Type': contentType ?? 'application/octet-stream',
   };
 
-  // Only forward a bearer token when we actually have one (API-token users);
-  // Google-session users have no apiToken and don't need it.
-  if (session?.user?.apiToken) {
-    responseHeaders.Authorization = `Bearer ${session.user.apiToken}`;
-  }
+  responseHeaders['X-Content-Type-Options'] = 'nosniff';
+
+  // Attachments a test produced (data/*.html, *.svg) are uploader-controlled. Served from the app origin
+  // with scripts enabled they could act as the viewer; sandbox keeps them as plain documents. The report's
+  // own index.html and the trace viewer sit outside data/ and keep working.
+  const isAttachmentDocument =
+    /(^|\/)data\//.test(targetPath) && (contentType === 'text/html' || contentType === 'image/svg+xml');
+
+  if (isAttachmentDocument) responseHeaders['Content-Security-Policy'] = 'sandbox';
 
   return new Response(content, { headers: responseHeaders });
 }
