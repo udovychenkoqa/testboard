@@ -1,3 +1,4 @@
+import { stripReservedMetadata } from '@/app/lib/reservedMetadata';
 import { service } from '@/app/lib/service';
 import { withError } from '@/app/lib/withError';
 
@@ -12,7 +13,11 @@ export async function POST(request: Request) {
   const { resultsIds, project, playwrightVersion, ...rest } = reqBody;
 
   try {
-    const result = await service.generateReport(resultsIds, { project, playwrightVersion, ...rest });
+    const result = await service.generateReport(resultsIds, {
+      project,
+      playwrightVersion,
+      ...stripReservedMetadata(rest),
+    });
 
     if (!result?.reportId) {
       return new Response('failed to generate report', { status: 400 });

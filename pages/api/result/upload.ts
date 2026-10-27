@@ -8,6 +8,7 @@ import Busboy from 'busboy';
 
 import { service } from '@/app/lib/service';
 import { DEFAULT_STREAM_CHUNK_SIZE } from '@/app/lib/storage/constants';
+import { stripReservedMetadata } from '@/app/lib/reservedMetadata';
 import { withError } from '@/app/lib/withError';
 
 export const config = { api: { bodyParser: false } };
@@ -43,6 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers: req.headers,
     limits: {
       files: 1,
+      // Free-form metadata only: a few dozen short strings, never megabytes of fields.
+      fields: 100,
+      fieldSize: 64 * 1024,
+      fieldNameSize: 100,
     },
     highWaterMark: DEFAULT_STREAM_CHUNK_SIZE,
     fileHwm: DEFAULT_STREAM_CHUNK_SIZE,
@@ -83,8 +88,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     bb.on('field', (name, val) => {
+      if (!(name in stripReservedMetadata({ [name]: val }))) return;
+
       resultDetails[name] = val;
     });
+
+    bb.on('fieldsLimit', () => reject(new Error('Too many form fields')));
 
     bb.on('error', (error: Error) => {
       reject(error);

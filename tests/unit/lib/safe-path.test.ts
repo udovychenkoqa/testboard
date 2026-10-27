@@ -57,3 +57,14 @@ describe('isAuthorized', () => {
     expect(isAuthorized({ actualAuthToken: null, expectedAuthToken: 'abc' })).toBe(false);
   });
 });
+
+describe('stripReservedMetadata', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { stripReservedMetadata } = require('@/app/lib/reservedMetadata');
+
+  it('drops server-owned identity fields and keeps free-form ones', () => {
+    expect(
+      stripReservedMetadata({ resultID: 'x', reportID: 'y', reportUrl: '//evil.example', job: 'nightly', env: 'qa' }),
+    ).toEqual({ job: 'nightly', env: 'qa' });
+  });
+});
