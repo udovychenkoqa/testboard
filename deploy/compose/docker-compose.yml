@@ -1,0 +1,87 @@
+# docker-compose.yml для деплою testboard на хост
+#
+# Структура на хості:
+#   /home/dev0ps/testboard/
+#   ├── .env                    <- генерується CI із secrets перед кожним deploy
+#   └── repo/                   <- git clone <repo-url>
+#       ├── Dockerfile
+#       └── deploy/compose/docker-compose.yml   <- цей файл
+#
+# Запуск вручну:
+#   cd /home/dev0ps/testboard
+#   docker compose --env-file .env -p testboard \
+#     -f repo/deploy/compose/docker-compose.yml up -d --build
+#
+# Логи:
+#   docker compose -p testboard logs -f testboard-app
+
+name: testboard
+
+services:
+  app:
+    build:
+      # context = корінь repo (Dockerfile лежить там)
+      # repo/deploy/compose/ -> ../../.. = repo/
+      context: ../..
+      dockerfile: Dockerfile
+    image: testboard/app:latest
+    container_name: testboard-app
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-3300}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Токен для API та UI авторизації. Обов'язковий у production.
+      # Згенерувати: openssl rand -hex 32
+      API_TOKEN: ${API_TOKEN:?API_TOKEN не задано}
+      # Секрет для NextAuth JWT. Обов'язковий.
+      # Згенерувати: openssl rand -hex 32
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET не задано}
+      # Google OAuth (опційно). Кнопка "Увійти через Google" з'являється тільки
+      # коли задані ОБИДВІ змінні. Redirect URI в Google Console:
+      # ${BASE_URL}/api/auth/callback/google
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
+      # Кому які ролі. Домени → viewer, емейли → admin (через кому).
+      AUTH_ALLOWED_DOMAINS: ${AUTH_ALLOWED_DOMAINS:-}
+      AUTH_ADMIN_EMAILS: ${AUTH_ADMIN_EMAILS:-}
+      # Публічний URL для NextAuth OAuth-колбеків (за проксі обов'язково).
+      AUTH_URL: ${AUTH_URL:-${BASE_URL:-https://testboard.example.com}}
+      UI_AUTH_EXPIRE_HOURS: ${UI_AUTH_EXPIRE_HOURS:-8}
+      # Storage: "fs" (локальний) або "s3"
+      DATA_STORAGE: ${DATA_STORAGE:-fs}
+      # Очищення старих даних (опційно)
+      RESULT_EXPIRE_DAYS: ${RESULT_EXPIRE_DAYS:-}
+      REPORT_EXPIRE_DAYS: ${REPORT_EXPIRE_DAYS:-}
+      # Heap для merge-reports: великі блоби зі скріншотами впираються в дефолтний
+      # ліміт Node і падають з OOM під час генерації репорту.
+      NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=3072}
+      # AI-аналіз падінь (опційно). Якщо не задано — фіча просто вимкнена,
+      # ніяких помилок. Ключ — sk-ant-...
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-5}
+      # Running autotests from the UI through GitLab pipelines (optional). If unset, the
+      # Automated tab says "not configured", no errors.
+      GITLAB_URL: ${GITLAB_URL:-}
+      GITLAB_TOKEN: ${GITLAB_TOKEN:-}
+      GITLAB_AUTOTESTS_PROJECT: ${GITLAB_AUTOTESTS_PROJECT:-}
+      GITLAB_REF: ${GITLAB_REF:-main}
+      # Публічна адреса сервера — для лінків у Slack/webhook-нотифікаціях
+      BASE_URL: ${BASE_URL:-https://testboard.example.com}
+    volumes:
+      # Дані зберігаються поза репо — не видаляються при redeploy
+      - /home/dev0ps/testboard/data:/app/data
+    networks: [testboard_net]
+    # merge-reports тримає весь репорт у пам'яті — 512m замало для великих прогонів.
+    mem_limit: ${MEM_LIMIT:-4g}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+networks:
+  testboard_net:
+    name: testboard_net

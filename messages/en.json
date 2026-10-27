@@ -1,0 +1,636 @@
+{
+  "meta": {
+    "description": "Playwright test reports dashboard"
+  },
+  "common": {
+    "runs": "{count, plural, one {# run} other {# runs}}",
+    "loading": "Loading…",
+    "clearFilters": "Clear filters",
+    "cancel": "Cancel",
+    "save": "Save",
+    "add": "Add",
+    "delete": "Delete",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "notAuthenticated": "You are not authenticated",
+    "errorLoading": "Error loading data: {message}"
+  },
+  "nav": {
+    "reports": "Reports",
+    "results": "Results",
+    "trends": "Trends",
+    "settings": "Settings",
+    "projects": "Projects",
+    "testCases": "Test Cases",
+    "testRuns": "Test Runs"
+  },
+  "userMenu": {
+    "account": "Account",
+    "signedIn": "Signed in",
+    "darkTheme": "Dark theme",
+    "language": "Language",
+    "settings": "Settings",
+    "apiKey": "API key",
+    "apiKeyCopied": "API key copied",
+    "signOut": "Sign out"
+  },
+  "login": {
+    "title": "Sign in to continue",
+    "google": "Continue with Google",
+    "or": "or",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter API Key",
+    "submit": "Login with API Key",
+    "invalidKey": "Invalid API key",
+    "opening": "Opening login page…"
+  },
+  "languages": {
+    "en": "English",
+    "uk": "Українська"
+  },
+  "dates": {
+    "today": "Today, {time}",
+    "yesterday": "Yesterday, {time}",
+    "todayDay": "Today · {day}",
+    "yesterdayDay": "Yesterday · {day}",
+    "justNow": "just now",
+    "minutesAgo": "{count} min ago",
+    "hoursAgo": "{count} h ago",
+    "daysAgo": "{count} d ago"
+  },
+  "filters": {
+    "search": "Search…",
+    "rows": "Rows",
+    "project": "Project",
+    "tags": "Tags",
+    "allTags": "All",
+    "noTags": "No tags",
+    "clear": "Clear",
+    "allTime": "All time",
+    "statusAll": "All",
+    "statusFailing": "Failing"
+  },
+  "reports": {
+    "title": "Reports",
+    "runTests": "Run tests",
+    "total": "{count} total · {size}",
+    "selected": "Selected: {count}",
+    "deselect": "Deselect",
+    "columns": {
+      "run": "Run",
+      "outcome": "Outcome",
+      "project": "Project",
+      "created": "Created",
+      "size": "Size"
+    },
+    "workers": "{count, plural, one {# worker} other {# workers}}",
+    "env": "env",
+    "counts": {
+      "passed": "{count} passed",
+      "failed": "{count} failed",
+      "flaky": "{count} flaky",
+      "skipped": "{count} skipped"
+    },
+    "allSkipped": "all skipped",
+    "dayFailed": "{count} failed",
+    "allPassed": "all passed",
+    "actions": {
+      "more": "More",
+      "menu": "Report actions",
+      "openPlaywright": "Open in Playwright",
+      "downloadZip": "Download HTML (ZIP)",
+      "exportPdf": "Export PDF",
+      "evidencePdf": "Evidence PDF",
+      "delete": "Delete"
+    },
+    "empty": {
+      "noFailingTitle": "No failing reports",
+      "noFailingDescription": "None of the reports on this page have failed tests.",
+      "showAll": "Show all reports",
+      "noMatchTitle": "No matching reports",
+      "noMatchDescription": "Nothing matches the current search, project, status or dates.",
+      "noReportsTitle": "No reports yet",
+      "noReportsDescription": "Reports are generated from test results. Send results from CI or upload them, then generate a report.",
+      "goToResults": "Go to Results"
+    }
+  },
+  "deleteReport": {
+    "confirmTitle": "Are you sure?",
+    "confirmBody": "{count, plural, one {This will permanently delete your report.} other {This will permanently delete your reports.}}",
+    "close": "Close",
+    "confirm": "Sure, Delete",
+    "buttonTitle": "Delete report",
+    "deleted": "{count, plural, one {Report deleted} other {Reports deleted}}"
+  },
+  "generateReport": {
+    "button": "Generate Report",
+    "title": "Generate report",
+    "failed": "Report generation failed:",
+    "projectName": "Project name",
+    "customName": "Custom report name",
+    "optional": "leave empty if not required",
+    "close": "Close",
+    "generate": "Generate",
+    "generated": "Report {id} is generated"
+  },
+  "results": {
+    "title": "Results",
+    "total": "{count} total · {size}",
+    "selected": "Selected: {count}",
+    "deselect": "Deselect",
+    "delete": "Delete",
+    "deleteOne": "Delete result",
+    "columns": {
+      "result": "Result",
+      "project": "Project",
+      "created": "Created",
+      "tags": "Tags",
+      "size": "Size"
+    },
+    "empty": {
+      "noMatchTitle": "No matching results",
+      "noMatchDescription": "Nothing matches the current search, project, tags or dates.",
+      "noResultsTitle": "No test results yet",
+      "noResultsDescription": "Results arrive when CI sends Playwright blob reports to the API — or upload a zip with Upload Results."
+    }
+  },
+  "uploadResults": {
+    "button": "Upload Results",
+    "buttonTitle": "Upload results",
+    "title": "Upload Results",
+    "file": "Result File",
+    "chooseFile": "Choose file (.zip, .json)",
+    "project": "Project (optional)",
+    "projectPlaceholder": "Enter project name",
+    "tags": "Tags (optional)",
+    "tagPlaceholder": "Enter tag (e.g., 'key:value' or 'key: value')",
+    "add": "Add",
+    "cancel": "Cancel",
+    "upload": "Upload",
+    "selectFile": "Please select a file to upload",
+    "failed": "Upload failed: {error}",
+    "unknownError": "Unknown error",
+    "uploaded": "Results uploaded successfully",
+    "tagFormat": "Tag must be in format \"key: value\""
+  },
+  "deleteResults": {
+    "confirmTitle": "Are you sure?",
+    "confirmBody": "This will permanently delete your results files.",
+    "close": "Close",
+    "confirm": "Sure, Delete",
+    "buttonTitle": "Delete results",
+    "deleted": "{count, plural, one {Result deleted} other {Results deleted}}"
+  },
+  "trends": {
+    "title": "Trends",
+    "analyzed": "{count} analyzed",
+    "empty": {
+      "title": "No reports to analyse yet",
+      "description": "Trends appear once this project has generated reports. Try another project or a larger window."
+    },
+    "stats": {
+      "passRate": "Pass rate",
+      "failedTests": "Failed tests",
+      "flakyTests": "Flaky tests",
+      "avgDuration": "Avg run duration"
+    },
+    "duration": {
+      "minSec": "{min}m {sec}s",
+      "sec": "{sec}s"
+    },
+    "health": {
+      "title": "Run health",
+      "healthyOf": "healthy · {healthy} of {total, plural, one {# run} other {# runs}}",
+      "runsAgo": "{count, plural, one {# run ago} other {# runs ago}}",
+      "now": "now",
+      "runTitle": "{title} — {date} — passed {passed} · failed {failed} · flaky {flaky}",
+      "lastRun": {
+        "good": "Last run passed",
+        "warn": "Last run unstable",
+        "bad": "Last run failed",
+        "none": "Last run: no tests ran"
+      }
+    },
+    "spark": {
+      "duration": "Duration, min",
+      "failed": "Failed",
+      "flaky": "Flaky"
+    },
+    "categories": {
+      "title": "Failure categories — last {count, plural, one {# run} other {# runs}}",
+      "network": "Network",
+      "assertion": "Assertion",
+      "element": "Element / locator",
+      "timeout": "Timeout",
+      "navigation": "Navigation",
+      "other": "Other"
+    },
+    "topFailures": "Top failures (click for latest report)",
+    "noFailures": "No failures in this period.",
+    "chart": {
+      "title": "Pass rate — last {count, plural, one {# run} other {# runs}} (click a point for its report)",
+      "notEnough": "Not enough runs for a trend yet",
+      "passRate": "Pass rate",
+      "passed": "Passed",
+      "failed": "Failed",
+      "flaky": "Flaky",
+      "skipped": "Skipped",
+      "total": "Total",
+      "hasFlaky": "Has flaky",
+      "hasFailures": "Has failures"
+    }
+  },
+  "runTests": {
+    "title": "Run Tests",
+    "notConfiguredTitle": "Running autotests isn't set up",
+    "notConfiguredDescription": "Set GITLAB_URL, GITLAB_TOKEN and GITLAB_AUTOTESTS_PROJECT on the server to run autotests from here.",
+    "environment": "Environment",
+    "tag": "Tag",
+    "run": "Run",
+    "advanced": "Advanced",
+    "willRun": "Will run:",
+    "cancel": "Cancel",
+    "recentRuns": "Recent runs",
+    "onlyMine": "Only mine",
+    "env": "Env",
+    "allEnvs": "All envs",
+    "status": {
+      "all": "All",
+      "running": "Active",
+      "failure": "Failed",
+      "success": "Success"
+    },
+    "active": "{count} active · ",
+    "successfulOnPage": "{ok}/{total} successful on this page",
+    "columns": {
+      "build": "Build",
+      "status": "Status",
+      "params": "Params",
+      "startedBy": "Started by",
+      "started": "Started",
+      "duration": "Duration"
+    },
+    "rerun": "Re-run with the same parameters",
+    "buildStarted": "Pipeline #{number} started",
+    "cancelled": "Run cancelled",
+    "empty": {
+      "noRunsTitle": "No runs yet",
+      "noRunsDescription": "Pick an environment and mode above, then start a run — it will show up here with live status.",
+      "startFirst": "Start the first run",
+      "noMatchTitle": "No matching runs",
+      "noMatchDescription": "No runs on this page match the current status, env or “Only mine” filters."
+    },
+    "mode": "Mode",
+    "modes": {
+      "byTag": "By tag",
+      "smoke": "Smoke",
+      "regression": "Regression"
+    },
+    "qaseRunId": "Qase run ID",
+    "qaseRunIdDescription": "Report into an existing Qase run. Empty — run by tag only.",
+    "qaseId": "Qase case IDs",
+    "qaseIdDescription": "For visual baseline generation, e.g. 356,357.",
+    "forceSnapshots": "Re-collect snapshots even if baselines exist",
+    "skipVisual": "Skip visual checks",
+    "openInGitlab": "Open in GitLab",
+    "rerunStarted": "Pipeline #{number} started again"
+  },
+  "settings": {
+    "page": {
+      "title": "Settings",
+      "subtitle": "config.json · autosave",
+      "saving": "Saving…",
+      "notSaved": "Not saved",
+      "saved": "Saved {time}",
+      "readFailed": "Couldn't read config: {error}",
+      "saveFailed": "Couldn't save: {error}"
+    },
+    "rail": {
+      "onThisPage": "On this page",
+      "aria": "Settings sections",
+      "server": "Server",
+      "cleanup": "Data cleanup",
+      "automation": "Automation",
+      "notifications": "Notifications",
+      "users": "Access"
+    },
+    "server": {
+      "title": "Server",
+      "reports": "Reports",
+      "results": "Results",
+      "totalData": "Total data",
+      "freeSpace": "Free disk space",
+      "storage": "Storage"
+    },
+    "cleanup": {
+      "title": "Data cleanup",
+      "subtitle": "Scheduled deletion of old data",
+      "results": "Results",
+      "resultsDescription": "Raw zip archives from CI — not needed once a report is generated.",
+      "reports": "Reports",
+      "reportsDescription": "Generated HTML reports — usually kept longer than results.",
+      "keepFor": "Keep for",
+      "days": "days",
+      "frequency": "Frequency",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "cron": "Cron",
+      "day": "Day",
+      "time": "Time",
+      "describeDaily": "daily at {time}",
+      "describeWeekly": "weekly on {day} at {time}",
+      "describeCron": "cron: {cron}"
+    },
+    "automation": {
+      "title": "Automation",
+      "aiTitle": "AI analysis of new reports",
+      "aiDescription": "Automatically analyse failures in every new report with AI. The Generate button on the report page works regardless of this switch.",
+      "modelTitle": "Analysis model",
+      "modelDescription": "Haiku — fastest and cheapest, Sonnet — balanced (recommended), Opus — deepest analysis, but pricier and slower."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "addChannel": "Add channel",
+      "editChannel": "Edit channel",
+      "edit": "Edit",
+      "noChannels": "No channels yet. Add a Slack or generic webhook to get notified about new reports.",
+      "withAi": " · + AI analysis",
+      "error": "error · {detail}",
+      "deleteChannel": "Delete channel",
+      "log": "Delivery log",
+      "log24h": "last 24 h: {sent} sent · {skipped} skipped · {error} error",
+      "noEntries": "No entries yet.",
+      "modalDescription": "Notifications about new reports will be sent to this webhook.",
+      "type": "Type",
+      "name": "Name",
+      "slackHint": "Create in Slack: Apps → Incoming Webhooks → Add to Slack → pick a channel → copy the URL.",
+      "webhookHint": "A POST with a JSON body is sent here for every report.",
+      "slackUrl": "Incoming webhook URL",
+      "webhookUrl": "Webhook URL",
+      "whenToSend": "When to send",
+      "conditionHint": "“Failures + recovery” notifies on red runs and on the first green run after red ones.",
+      "projectFilter": "Project or job (optional)",
+      "projectFilterHint": "Matches the report project or job label (REPORT_JOB from CI). Empty — everything",
+      "includeAi": "Include AI analysis",
+      "includeAiHint": "Appends the report's AI summary to the message (only when one was generated — i.e. on failures).",
+      "required": "Name and URL are required",
+      "conditions": {
+        "always": "Every run",
+        "has_failures": "Only with failures",
+        "has_failures_or_recovered": "Failures + recovery"
+      }
+    },
+    "access": {
+      "title": "Access",
+      "signInEnabled": "Sign-in enabled",
+      "signInDisabled": "Sign-in disabled",
+      "user": "User",
+      "role": "Role",
+      "remove": "Remove",
+      "nobody": "Nobody added yet — everyone from the domain signs in as viewer.",
+      "readFailed": "Couldn't read access list: {error}",
+      "footer": "Only <b>admin</b> has full access (Settings, deletion, triggering runs); other roles are view-only. New users from an allowed domain get <b>viewer</b> by default."
+    }
+  },
+  "status": {
+    "passed": "Passed",
+    "failed": "Failed",
+    "flaky": "Flaky",
+    "skipped": "Skipped",
+    "all": "All"
+  },
+  "report": {
+    "breadcrumb": "Reports",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "download": "Download",
+    "downloadZip": "HTML (ZIP)",
+    "exportPdf": "PDF",
+    "evidencePdf": "Evidence PDF",
+    "openPlaywright": "Open in Playwright",
+    "loading": "Loading report…",
+    "noTestSelected": "No test selected.",
+    "verdict": {
+      "failed": "{count} failed",
+      "allPassed": "All passed",
+      "flaky": "· {count} flaky ",
+      "passed": "· {count} passed",
+      "skipped": " · {count} skipped",
+      "tests": "{count, plural, one {# test} other {# tests}}",
+      "passRateLast": "Pass rate · last {count}",
+      "percentPassed": "% passed",
+      "compare": "Compare with previous run →"
+    },
+    "ai": {
+      "title": "AI Summary",
+      "regenerate": "Regenerate",
+      "generate": "Generate",
+      "pending": "AI analysis is still in progress…",
+      "none": "No AI summary yet.",
+      "rateLimited": "AI analysis temporarily unavailable (rate limited) — retry in ~{seconds}s.",
+      "notConfigured": "AI analysis is not configured on this server.",
+      "unsupportedStorage": "AI analysis is only supported with local filesystem storage.",
+      "technicalDetails": "Technical details",
+      "failure": {
+        "auth": "AI analysis failed: the Anthropic API key is invalid or revoked. An admin needs to update ANTHROPIC_API_KEY on the server.",
+        "forbidden": "AI analysis failed: the Anthropic API key has no access to this model. Check the key’s permissions or ANTHROPIC_MODEL.",
+        "billing": "AI analysis failed: the Anthropic account has run out of credits. Top up the balance, then press Generate.",
+        "model": "AI analysis failed: the configured model doesn’t exist. Check ANTHROPIC_MODEL on the server.",
+        "rateLimit": "AI analysis hit the Anthropic rate limit. Try again in a few minutes.",
+        "unavailable": "Anthropic is overloaded or temporarily unavailable. Try again later.",
+        "network": "The server couldn’t reach Anthropic (network or timeout). Try again later.",
+        "badRequest": "Anthropic rejected the request (for example, the report is too large for the model).",
+        "readReport": "AI analysis failed: the report files couldn’t be read.",
+        "writeSummary": "AI analysis finished but the summary couldn’t be saved.",
+        "emptyResponse": "Anthropic returned an empty answer. Try generating again.",
+        "unknown": "AI analysis failed with an unexpected error."
+      }
+    },
+    "test": {
+      "retry": "retry {n}/{n}",
+      "openTrace": "Open trace",
+      "notes": "AI analysis / notes",
+      "history": "History · last {count, plural, one {# run} other {# runs}}",
+      "prevScreenshot": "Previous screenshot",
+      "nextScreenshot": "Next screenshot",
+      "loadFailed": "Couldn't load: {name}"
+    },
+    "list": {
+      "list": "List",
+      "byFile": "By file",
+      "filter": "Filter by name or file",
+      "noMatch": "No tests match.",
+      "noMatchSearch": "No tests match “{search}”."
+    }
+  },
+  "themeSwitch": {
+    "theme": "Theme",
+    "light": "Light mode",
+    "dark": "Dark mode"
+  },
+  "errors": {
+    "unreachableTitle": "Couldn't reach an external service",
+    "unreachableDescription": "The server can't connect to it right now (e.g. GitLab). Try again later.",
+    "forbiddenTitle": "You don't have access",
+    "forbiddenDescription": "Your role doesn't allow this action.",
+    "notFoundTitle": "Not found",
+    "serverTitle": "Request failed",
+    "unauthorized": "Your session has ended — sign in again"
+  },
+  "tm": {
+    "runs": {
+      "title": "Test Runs",
+      "manual": "Manual",
+      "automated": "Automated",
+      "project": "Project",
+      "pickProject": "Pick a project",
+      "noProjectsTitle": "No projects yet",
+      "noProjectsDescription": "Create a project in Test Cases first.",
+      "goToCases": "Go to Test Cases",
+      "newRun": "New run",
+      "runName": "Run name",
+      "source": {
+        "label": "Cases",
+        "all": "All cases",
+        "suites": "Suites",
+        "tags": "Tags",
+        "cases": "Selected cases",
+        "selectedCount": "{count, plural, one {# case selected} other {# cases selected}}"
+      },
+      "suites": "Suites",
+      "tags": "Tags",
+      "tagsHint": "Comma-separated",
+      "defaultAssignee": "Assign to",
+      "nobody": "Nobody",
+      "created": "Run created",
+      "emptyTitle": "No runs yet",
+      "emptyDescription": "Create a run from the project's cases and work through it.",
+      "status": {
+        "in_progress": "In progress",
+        "completed": "Completed"
+      },
+      "result": {
+        "untested": "Untested",
+        "passed": "Passed",
+        "failed": "Failed",
+        "blocked": "Blocked",
+        "skipped": "Skipped"
+      },
+      "progress": "{done} / {total} done",
+      "cases": "{count, plural, one {# case} other {# cases}}",
+      "complete": "Complete run",
+      "completed": "Run completed",
+      "completeConfirm": "Complete this run? Results can't be changed afterwards.",
+      "myCases": "My cases",
+      "allResults": "All",
+      "backToRuns": "All runs",
+      "assignee": "Assignee",
+      "unassigned": "Unassigned",
+      "comment": "Comment",
+      "commentPlaceholder": "What happened? Steps to reproduce, build, links…",
+      "preconditions": "Preconditions",
+      "steps": "Steps",
+      "expected": "Expected",
+      "resultBy": "{result} by {who}",
+      "next": "Next case",
+      "noMatchTitle": "No cases match",
+      "noMatchDescription": "Change the filters to see more cases.",
+      "readOnly": "Completed — read only",
+      "createdBy": "by {who}",
+      "resultFilter": "Result",
+      "notFoundTitle": "Run not found",
+      "notFoundDescription": "It may have been removed, or the link is wrong."
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "create": "Create",
+      "delete": "Delete",
+      "rename": "Rename",
+      "edit": "Edit",
+      "close": "Close",
+      "saved": "Saved",
+      "deleted": "Deleted",
+      "name": "Name"
+    },
+    "fields": {
+      "priority": {
+        "label": "Priority",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "status": {
+        "label": "Status",
+        "draft": "Draft",
+        "actual": "Actual",
+        "deprecated": "Deprecated"
+      },
+      "automation": {
+        "label": "Automation",
+        "manual": "Manual",
+        "automated": "Automated",
+        "to_automate": "To automate"
+      },
+      "suite": "Suite",
+      "title": "Title",
+      "description": "Description",
+      "preconditions": "Preconditions",
+      "tags": "Tags",
+      "tagsHint": "Comma-separated",
+      "steps": "Steps",
+      "action": "Action",
+      "expected": "Expected result",
+      "addStep": "Add step",
+      "noSteps": "No steps yet.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "removeStep": "Remove step",
+      "tagSuggestions": "Existing tags"
+    },
+    "projects": {
+      "title": "Test Cases",
+      "subtitle": "Pick a project",
+      "newProject": "New project",
+      "key": "Key",
+      "keyHint": "Same as the project name CI sends with reports, e.g. hanimax-web",
+      "code": "Code",
+      "codeHint": "Prefix for case IDs, e.g. HW → HW-42",
+      "cases": "{count, plural, one {# case} other {# cases}}",
+      "automated": "{percent}% automated",
+      "emptyTitle": "No projects yet",
+      "emptyDescription": "Create a project to start writing test cases.",
+      "created": "Project created",
+      "delete": "Delete project",
+      "deleteTitle": "Delete “{name}”?",
+      "deleteWarning": "This permanently deletes the project with all its suites, {count, plural, one {# case} other {# cases}} and every run. This can’t be undone.",
+      "deleteConfirmLabel": "Type {key} to confirm",
+      "deleted": "Project “{name}” deleted"
+    },
+    "cases": {
+      "back": "All projects",
+      "newCase": "New case",
+      "newSuite": "New suite",
+      "subSuite": "Add sub-suite",
+      "allCases": "All cases",
+      "search": "Search by title or ID…",
+      "any": "Any",
+      "selected": "Selected: {count}",
+      "move": "Move to…",
+      "createRun": "Create run",
+      "deleteSelected": "Delete selected",
+      "emptyTitle": "No cases here",
+      "emptyDescription": "Add a case to this suite, or pick another suite.",
+      "noSuitesTitle": "Start with a suite",
+      "noSuitesDescription": "Suites group cases, e.g. Auth, Cart, Checkout.",
+      "createdBy": "Created by {who}",
+      "updated": "Updated {when} by {who}",
+      "suiteDeleteConfirm": "Delete the suite, its sub-suites and their cases? Past runs keep their results.",
+      "caseDeleteConfirm": "Delete the selected cases? Past runs keep their results.",
+      "caseCreated": "Case {label} created",
+      "moved": "Cases moved",
+      "readOnly": "You can view test cases; editing needs the tester or admin role.",
+      "dragCount": "{count, plural, one {# case} other {# cases}}"
+    }
+  }
+}

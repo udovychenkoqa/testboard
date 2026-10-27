@@ -1,0 +1,21 @@
+{
+  "name": "@testboard/reporter",
+  "version": "0.1.0",
+  "description": "Playwright reporter that uploads blob reports to Testboard. Drop-in replacement for @cyborgtests/reporter-playwright-reports-server.",
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.37"
+  }
+}
