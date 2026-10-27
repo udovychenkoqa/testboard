@@ -51,7 +51,7 @@ Before saying a change is done: `test:unit`, `tsc`, `lint` (no new errors) and, 
   (`app/lib/tm/handler.ts`).
 - `next dev` with a custom `NEXT_DIST_DIR` rewrites `tsconfig.json` (adds `.next-*/types`). After such a
   run: `git checkout tsconfig.json` and delete the `.next-*` dir.
-- `.prettierrc` (printWidth 120) wins over `prettier.config.js`; format with `npx eslint --fix`.
+- Formatting comes from `.prettierrc` (printWidth 120); format with `npx eslint --fix`.
 - `DATA_DIR` may be relative or absolute; it is resolved with `path.resolve` (`app/lib/storage/constants.ts`).
 - Result upload lives in the **Pages** router (`pages/api/result/upload.ts`) because it streams multipart
   bodies with Busboy; don't move it to App Router.

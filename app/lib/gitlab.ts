@@ -122,5 +122,3 @@ export const cancelPipeline = async (id: number): Promise<void> => {
   await gitlabFetch(`/pipelines/${id}/cancel`, { method: 'POST' });
 };
 
-export const retryPipeline = async (id: number): Promise<Pipeline> =>
-  toPipeline(await (await gitlabFetch(`/pipelines/${id}/retry`, { method: 'POST' })).json());

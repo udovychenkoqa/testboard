@@ -123,19 +123,15 @@ describe('gitlab client', () => {
     expect((await gitlab.listPipelines(1, 10)).total).toBe(0);
   });
 
-  it('cancels and retries a pipeline', async () => {
+  it('cancels a pipeline', async () => {
     const gitlab = load();
 
     fetchMock.mockResolvedValueOnce(json(apiPipeline({ status: 'canceled' })));
     await gitlab.cancelPipeline(901);
-    fetchMock.mockResolvedValueOnce(json(apiPipeline({ id: 902, status: 'pending' })));
-    const retried = await gitlab.retryPipeline(901);
 
     expect(fetchMock.mock.calls.map(([url, init]) => `${init.method} ${url}`)).toEqual([
       'POST https://gitlab.example.com/api/v4/projects/qa%2Fautotests/pipelines/901/cancel',
-      'POST https://gitlab.example.com/api/v4/projects/qa%2Fautotests/pipelines/901/retry',
     ]);
-    expect(retried.id).toBe(902);
   });
 
   it.each([
