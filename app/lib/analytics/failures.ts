@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
-import path from 'node:path';
 
+import { resolveInside } from '../safePath';
 import { REPORTS_FOLDER } from '../storage/constants';
 import { withError } from '../withError';
 import { storage } from '../storage';
@@ -27,7 +27,8 @@ const CATEGORY_PATTERNS: Array<{ category: FailureCategory; pattern: RegExp }> =
   { category: 'assertion', pattern: /expect\(|expected .* (to|but)|toBe|toEqual|toHave|toContain|assertion/i },
   {
     category: 'element',
-    pattern: /waiting for (locator|selector|element)|locator\(|not visible|not attached|strict mode violation|element is|intercepts pointer events/i,
+    pattern:
+      /waiting for (locator|selector|element)|locator\(|not visible|not attached|strict mode violation|element is|intercepts pointer events/i,
   },
   { category: 'timeout', pattern: /timeout|timed out|exceeded/i },
   { category: 'navigation', pattern: /page\.goto|navigation|ERR_ABORTED|frame was detached/i },
@@ -71,7 +72,13 @@ export const getOrBuildReportFailures = async (
 
   if (!hasFailures) return [];
 
-  const cachePath = path.join(REPORTS_FOLDER, projectPath, reportId, FAILURES_SUMMARY_FILENAME);
+  let cachePath: string;
+
+  try {
+    cachePath = resolveInside(REPORTS_FOLDER, projectPath, reportId, FAILURES_SUMMARY_FILENAME);
+  } catch {
+    return []; // stored project/reportID points outside REPORTS_FOLDER: contribute nothing
+  }
 
   const { result: cached } = await withError(fs.readFile(cachePath, 'utf-8'));
 
