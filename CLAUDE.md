@@ -3,8 +3,7 @@
 ## Claude Code specifics
 
 - Talk to the owner in Ukrainian; keep code, comments and commit messages in English.
-- Larger features follow the superpowers flow: brainstorming → spec in `docs/superpowers/specs/` →
-  plan in `docs/superpowers/plans/` → implementation with TDD. Specs and plans are kept as history.
+- Larger features: agree on the design with the owner first, then implement with TDD (see `docs/workflow.md`).
 - Verify UI changes in the browser pane against an **isolated** server, never the owner's :3000 one.
   Sign in with the made-up token only:
 

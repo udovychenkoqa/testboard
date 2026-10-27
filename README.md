@@ -78,4 +78,3 @@ Pushing to `master` deploys automatically through GitLab CI (`.gitlab-ci.yml`): 
 | Unit and e2e tests                       | [docs/testing.md](docs/testing.md)                     |
 | Branches, commits, reviews, secrets      | [docs/workflow.md](docs/workflow.md)                   |
 | Notes for AI agents and new contributors | [AGENTS.md](AGENTS.md)                                 |
-| Design history (specs and plans)         | [docs/superpowers](docs/superpowers)                   |

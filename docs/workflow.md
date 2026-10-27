@@ -27,13 +27,10 @@ a 404.
 
 ## Larger features
 
-1. **Design:** discussion → spec in `docs/superpowers/specs/YYYY-MM-DD-<name>-design.md`.
-2. **Plan:** tasks with tests → `docs/superpowers/plans/YYYY-MM-DD-<name>.md`.
-3. **Implementation:** task by task, TDD, one commit per task.
-4. **Review:** review the whole branch, fix important findings with a test.
-5. **Integration:** merge or PR — the owner decides.
-
-Specs and plans stay in the repo as a record of decisions.
+1. **Design:** agree on the approach with the owner before writing code.
+2. **Implementation:** task by task, TDD, one commit per task.
+3. **Review:** review the whole branch, fix important findings with a test.
+4. **Integration:** merge or PR — the owner decides. The PR description records the decisions and why.
 
 ## Code review checklist
 
