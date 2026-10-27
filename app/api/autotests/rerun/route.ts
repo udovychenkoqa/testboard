@@ -1,14 +1,14 @@
 import { auth } from '@/app/auth';
-import { readBody, notConfigured, upstreamError } from '@/app/lib/autotests/http';
+import { readBody, notConfigured, notStartedHere, upstreamError } from '@/app/lib/autotests/http';
 import { getPipelineRecords, recordPipeline } from '@/app/lib/autotests/pipelines';
 import { pipelineId } from '@/app/lib/autotests/schema';
-import { createPipeline, isGitlabConfigured, retryPipeline } from '@/app/lib/gitlab';
+import { createPipeline, isGitlabConfigured } from '@/app/lib/gitlab';
 import { getDb } from '@/app/lib/tm/db';
 
 export const dynamic = 'force-dynamic';
 
-// A pipeline Testboard started is re-run as a new pipeline with the same inputs. One started elsewhere has
-// no known inputs, so GitLab retries its failed jobs instead.
+// A pipeline Testboard started is re-run as a new pipeline with the same inputs. One started elsewhere is
+// refused: GITLAB_TOKEN must not become a way to retry any pipeline in the project.
 export async function POST(req: Request) {
   if (!isGitlabConfigured()) return notConfigured();
 
@@ -17,11 +17,7 @@ export async function POST(req: Request) {
     const db = getDb();
     const record = getPipelineRecords(db, [id]).get(id);
 
-    if (!record) {
-      const build = await retryPipeline(id);
-
-      return Response.json({ build, link: build.link });
-    }
+    if (!record) return notStartedHere();
 
     const session = await auth();
     const build = await createPipeline(record.inputs);

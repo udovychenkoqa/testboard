@@ -109,13 +109,11 @@ describe('/api/autotests routes', () => {
     expect(getPipelineRecords(db, [905]).get(905)).toEqual({ startedBy: 'qa@hanimax.com', inputs });
   });
 
-  it('falls back to GitLab retry for a pipeline started elsewhere', async () => {
-    gitlab.retryPipeline.mockResolvedValue(pipeline(700));
-
+  it('refuses to rerun a pipeline Testboard did not start', async () => {
     const res = await rerun(post({ id: 700 }));
 
-    expect(res.status).toBe(200);
-    expect(gitlab.retryPipeline).toHaveBeenCalledWith(700);
+    expect(res.status).toBe(403);
+    expect(gitlab.retryPipeline).not.toHaveBeenCalled();
     expect(gitlab.createPipeline).not.toHaveBeenCalled();
   });
 
@@ -139,7 +137,11 @@ describe('/api/autotests routes', () => {
     ]);
   });
 
-  it('cancels by pipeline id', async () => {
+  it('cancels only pipelines Testboard started', async () => {
+    expect((await cancel(post({ id: 901 }))).status).toBe(403);
+    expect(gitlab.cancelPipeline).not.toHaveBeenCalled();
+
+    recordPipeline(db, { pipelineId: 901, startedBy: 'someone', inputs: {} as never });
     expect((await cancel(post({ id: 901 }))).status).toBe(200);
     expect(gitlab.cancelPipeline).toHaveBeenCalledWith(901);
     expect((await cancel(post({ id: 'x' }))).status).toBe(400);

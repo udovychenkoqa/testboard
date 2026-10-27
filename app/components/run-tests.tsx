@@ -474,15 +474,17 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
             <div className="min-w-0 flex-1 truncate">
               <ParamChips build={build} modeLabel={modeLabel} />
             </div>
-            <Button
-              color="danger"
-              isLoading={cancelling === build.id}
-              size="sm"
-              variant="flat"
-              onPress={() => cancelBuild(build.id)}
-            >
-              {t('cancel')}
-            </Button>
+            {build.inputs ? (
+              <Button
+                color="danger"
+                isLoading={cancelling === build.id}
+                size="sm"
+                variant="flat"
+                onPress={() => cancelBuild(build.id)}
+              >
+                {t('cancel')}
+              </Button>
+            ) : null}
           </div>
         ))}
 
@@ -585,7 +587,8 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
                     {duration(build)}
                   </span>
                   <div className="flex justify-end">
-                    {isActive(build.status) ? (
+                    {/* Only pipelines started from Testboard (known inputs) can be cancelled or rerun here. */}
+                    {!build.inputs ? null : isActive(build.status) ? (
                       <Button
                         color="danger"
                         isLoading={cancelling === build.id}
