@@ -102,8 +102,11 @@ const ADMIN_ROUTES: AdminRoute[] = [
   { method: 'GET', suffix: '/api/access' }, // manage:settings (user/role admin)
   { method: 'POST', suffix: '/api/access' },
   { method: 'POST', suffix: '/api/config' }, // manage:settings
+  { method: 'PATCH', suffix: '/api/config' }, // the real settings write (POST was never a handler)
   { method: 'POST', suffix: '/api/report/delete' },
   { method: 'POST', suffix: '/api/result/delete' },
+  { method: 'DELETE', suffix: '/api/report/delete' },
+  { method: 'DELETE', suffix: '/api/result/delete' },
   { method: 'POST', suffix: '/api/report/generate' },
   { method: 'POST', suffix: '/api/autotests/trigger' }, // run:tests (viewers too)
   { method: 'POST', suffix: '/api/autotests/cancel' }, // run:tests

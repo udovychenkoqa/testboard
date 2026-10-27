@@ -4,6 +4,7 @@ import JSZip from 'jszip';
 import { type NextRequest } from 'next/server';
 import { redirect } from 'next/navigation';
 
+import { resolveRenderOrigin } from '@/app/lib/renderOrigin';
 import { withError } from '@/app/lib/withError';
 import { service } from '@/app/lib/service';
 import { storage } from '@/app/lib/storage';
@@ -76,10 +77,9 @@ async function exportPdf(reportId: string, project: string, title: string, req: 
     return new Response('Playwright is not available in this environment', { status: 500 });
   }
 
-  const host = req.headers.get('host') ?? 'localhost:3000';
-  const protocol = req.headers.get('x-forwarded-proto') ?? 'http';
+  const { origin, hostname } = resolveRenderOrigin(req.headers);
   const projectSegment = project ? `${encodeURIComponent(project)}/` : '';
-  const reportUrl = `${protocol}://${host}/api/serve/${projectSegment}${reportId}/index.html`;
+  const reportUrl = `${origin}/api/serve/${projectSegment}${reportId}/index.html`;
   const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 
   const browser = await chromium.launch({
@@ -95,7 +95,7 @@ async function exportPdf(reportId: string, project: string, title: string, req: 
       const cookies = cookieHeader.split(';').map((pair) => {
         const [name, ...rest] = pair.trim().split('=');
 
-        return { name: name.trim(), value: rest.join('=').trim(), domain: host.split(':')[0], path: '/' };
+        return { name: name.trim(), value: rest.join('=').trim(), domain: hostname, path: '/' };
       });
 
       await context.addCookies(cookies);

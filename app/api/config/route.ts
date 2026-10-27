@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 import { withError } from '@/app/lib/withError';
 import { DATA_FOLDER } from '@/app/lib/storage/constants';
+import { resolveInside } from '@/app/lib/safePath';
 import { service } from '@/app/lib/service';
 import { env } from '@/app/config/env';
 import { cronService } from '@/app/lib/service/cron';
@@ -18,7 +19,7 @@ const saveFile = async (file: File) => {
 
   const buffer = Buffer.from(arrayBuffer);
 
-  await fs.writeFile(path.join(DATA_FOLDER, file.name), buffer, { encoding: 'binary' });
+  await fs.writeFile(resolveInside(DATA_FOLDER, path.basename(file.name)), buffer, { encoding: 'binary' });
 };
 
 const parseHeaderLinks = async (headerLinks: string): Promise<Record<string, string>> => {
@@ -66,7 +67,7 @@ export async function PATCH(request: Request) {
   }
 
   if (logo) {
-    config.logoPath = `/${logo.name}`;
+    config.logoPath = `/${path.basename(logo.name)}`;
   } else if (logoPath !== null) {
     config.logoPath = logoPath.toString();
   }

@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
 import { REPORTS_FOLDER, TMP_FOLDER } from './storage/constants';
+import { resolveInside } from './safePath';
 import { createDirectory } from './storage/folders';
 import { ReportMetadata } from './storage/types';
 import { defaultConfig } from './config';
@@ -28,7 +29,7 @@ export const generatePlaywrightReport = async (
 
   console.log(`[pw] generating Playwright report ${reportId}`);
 
-  const reportPath = path.join(REPORTS_FOLDER, project ?? '', reportId);
+  const reportPath = resolveInside(REPORTS_FOLDER, project ?? '', reportId);
 
   await createDirectory(reportPath);
 

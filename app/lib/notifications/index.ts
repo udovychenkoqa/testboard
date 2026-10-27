@@ -313,6 +313,9 @@ const webhookPayload = (facts: ReportFacts, reportId: string) => ({
 });
 
 const sendToChannel = async (channel: NotificationChannel, payload: unknown): Promise<void> => {
+  // Only web hooks: file:, ftp: and friends have no business in a notification channel.
+  if (!/^https?:\/\//i.test(channel.url)) throw new Error('Channel URL must start with http:// or https://');
+
   const response = await fetch(channel.url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -321,7 +324,8 @@ const sendToChannel = async (channel: NotificationChannel, payload: unknown): Pr
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${(await response.text()).slice(0, 200)}`);
+    // Status only: the body of an internal service must not end up in the log that viewers can read.
+    throw new Error(`HTTP ${response.status}`);
   }
 };
 
