@@ -2,13 +2,24 @@ import NextAuth from 'next-auth';
 
 import { authConfig } from './auth.config';
 import { ROLE_POLICY } from './lib/authFlags';
-import { resolveRole } from './lib/access';
+import { resolveRole, type Role } from './lib/access';
+import { needsRoleRecheck } from './lib/roleRecheck';
 
 // The full (Node-runtime) auth instance used by route handlers and server
 // components. It extends the edge-safe authConfig with role resolution that
 // reads config.json (admin-assigned roles) — via a DYNAMIC import of the
 // Node-only roleStore so it never lands in the edge middleware bundle. The
 // role is baked into the JWT at sign-in; middleware only reads it back.
+// Bootstrap admins (AUTH_ADMIN_EMAILS) are ALWAYS admin and cannot be demoted through the UI — this
+// prevents an admin locking themselves out. Otherwise the admin-assigned role wins, then the domain default.
+const resolveGoogleRole = async (email: string | null | undefined): Promise<Role | undefined> => {
+  const { getAssignedRole } = await import('./lib/roleStore');
+  const assigned = await getAssignedRole(email);
+  const envRole = resolveRole(email, ROLE_POLICY); // 'admin' | 'viewer' | null
+
+  return envRole === 'admin' ? 'admin' : (assigned ?? envRole ?? undefined);
+};
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   callbacks: {
@@ -29,14 +40,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user, account }) {
       if (user) {
         if (account?.provider === 'google') {
-          const { getAssignedRole } = await import('./lib/roleStore');
-          const assigned = await getAssignedRole(user.email);
-          const envRole = resolveRole(user.email, ROLE_POLICY); // 'admin' | 'viewer' | null
-
-          // Bootstrap admins (AUTH_ADMIN_EMAILS) are ALWAYS admin and cannot be
-          // demoted through the UI — this prevents an admin locking themselves
-          // out. Otherwise the admin-assigned role wins, then the domain default.
-          token.role = envRole === 'admin' ? 'admin' : (assigned ?? envRole ?? undefined);
+          token.role = await resolveGoogleRole(user.email);
+          token.roleCheckedAt = Date.now();
           token.email = user.email ?? undefined;
           token.jwtToken = `oauth:${user.email}`;
         } else {
@@ -44,6 +49,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.jwtToken = user.jwtToken;
           token.role = user.role;
         }
+      } else if (needsRoleRecheck(token, Date.now())) {
+        // A removed person ends up with no role, which middleware treats as signed out.
+        token.role = await resolveGoogleRole(token.email as string);
+        token.roleCheckedAt = Date.now();
       }
 
       return token;
