@@ -14,6 +14,7 @@ export const env = cleanEnv(process.env, {
   // Comma-separated exact emails granted the admin role (Settings, deletes,
   // triggers). Always allowed to sign in regardless of domain.
   AUTH_ADMIN_EMAILS: str({ desc: 'Comma-separated admin emails', default: '' }),
+  MAX_UPLOAD_MB: num({ desc: 'Largest accepted result upload in MB (0 = no limit)', default: 0 }),
   DATA_STORAGE: str({ desc: 'Where to store data', default: 'fs' }),
   USE_SERVER_CACHE: bool({ desc: 'Use server side indexed cache for backend queries', default: false }),
   S3_ENDPOINT: str({ desc: 'S3 endpoint', default: undefined }),
