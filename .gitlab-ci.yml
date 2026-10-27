@@ -28,7 +28,14 @@ stages:
     - install -d -m 700 ~/.ssh
     - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+    # Pin the host key by setting the SSH_KNOWN_HOSTS CI variable (output of `ssh-keyscan -H <host>`
+    # taken once from a trusted machine). Without it, fall back to trust-on-first-use.
+    - |
+      if [ -n "$SSH_KNOWN_HOSTS" ]; then
+        printf '%s\n' "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+      else
+        ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+      fi
     - chmod 600 ~/.ssh/known_hosts
 
 update-env:
