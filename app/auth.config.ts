@@ -4,6 +4,7 @@ import Google from 'next-auth/providers/google';
 
 import { env } from './config/env';
 import { AUTH_ENABLED, GOOGLE_ENABLED, ROLE_POLICY } from './lib/authFlags';
+import { safeEqual } from './lib/auth';
 import { resolveRole, ROLES, type Role } from './lib/access';
 
 // Edge-safe NextAuth config shared by app/auth.ts (Node route handler) and
@@ -39,13 +40,15 @@ const buildProviders = () => {
   // The API_TOKEN login is the service/admin path — a correct token grants the
   // admin role. apiToken is the real token so the browser keeps passing it as
   // the Authorization header (middleware's CI path).
-  if (env.API_TOKEN) {
+  const expectedToken = env.API_TOKEN;
+
+  if (expectedToken) {
     providers.push(
       Credentials({
         name: 'API Token',
         credentials: { apiToken: { label: 'API Token', type: 'password' } },
         async authorize(credentials): Promise<User | null> {
-          if (credentials?.apiToken !== env.API_TOKEN) return null;
+          if (typeof credentials?.apiToken !== 'string' || !safeEqual(credentials.apiToken, expectedToken)) return null;
 
           return {
             apiToken: credentials.apiToken as string,

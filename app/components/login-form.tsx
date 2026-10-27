@@ -6,6 +6,7 @@ import { Button, Card, CardBody, CardHeader, Divider, Input } from '@heroui/reac
 import { getProviders, signIn, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 
+import { safeCallbackPath } from '@/app/lib/safeRedirect';
 import { PageLoader } from '@/app/components/ui/page-loader';
 import { GoogleIcon } from '@/app/components/icons';
 import { LanguageSwitch } from '@/app/components/language-switch';
@@ -22,8 +23,7 @@ export default function LoginForm() {
   const session = useSession();
   const searchParams = useSearchParams();
 
-  const target = searchParams?.get('callbackUrl') ?? '/';
-  const callbackUrl = decodeURI(target);
+  const callbackUrl = safeCallbackPath(searchParams?.get('callbackUrl'));
 
   useEffect(() => {
     // redirect if already authenticated

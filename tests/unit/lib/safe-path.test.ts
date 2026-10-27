@@ -29,3 +29,31 @@ describe('requiredCapability for settings and deletes', () => {
     expect(requiredCapability('/api/report/delete', 'DELETE')).toBe(CAPABILITIES.manageReports);
   });
 });
+
+describe('safeCallbackPath', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { safeCallbackPath } = require('@/app/lib/safeRedirect');
+
+  it.each(['/reports', '/runs/automated?tab=1'])('keeps %s', (value) => {
+    expect(safeCallbackPath(value)).toBe(value);
+  });
+
+  it.each(['javascript:alert(1)', '//evil.example', '/\\evil.example', 'https://evil.example', '%'])(
+    'falls back for %s',
+    (value) => {
+      expect(safeCallbackPath(value)).toBe('/');
+    },
+  );
+});
+
+describe('isAuthorized', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { isAuthorized } = require('@/app/lib/auth');
+
+  it('matches only the exact token', () => {
+    expect(isAuthorized({ actualAuthToken: 'abc', expectedAuthToken: 'abc' })).toBe(true);
+    expect(isAuthorized({ actualAuthToken: 'abd', expectedAuthToken: 'abc' })).toBe(false);
+    expect(isAuthorized({ actualAuthToken: 'ab', expectedAuthToken: 'abc' })).toBe(false);
+    expect(isAuthorized({ actualAuthToken: null, expectedAuthToken: 'abc' })).toBe(false);
+  });
+});
