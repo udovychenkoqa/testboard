@@ -15,3 +15,11 @@ export const resolveInside = (root: string, ...segments: string[]): string => {
 
   return target;
 };
+
+// A project is a single folder/prefix name. Rejected at the API boundary so no storage backend
+// (fs, S3, Azure) ever joins a `..` or absolute segment into a key.
+export const isSafeProjectName = (project: unknown): boolean =>
+  project === undefined ||
+  project === null ||
+  project === '' ||
+  (typeof project === 'string' && !project.split(/[\\/]/).some((part) => part === '..') && !project.startsWith('/'));

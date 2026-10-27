@@ -9,6 +9,7 @@ import Busboy from 'busboy';
 import { env } from '@/app/config/env';
 import { service } from '@/app/lib/service';
 import { DEFAULT_STREAM_CHUNK_SIZE } from '@/app/lib/storage/constants';
+import { isSafeProjectName } from '@/app/lib/safePath';
 import { stripReservedMetadata } from '@/app/lib/reservedMetadata';
 import { withError } from '@/app/lib/withError';
 
@@ -98,6 +99,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     bb.on('field', (name, val) => {
       if (!(name in stripReservedMetadata({ [name]: val }))) return;
+      if (name === 'project' && !isSafeProjectName(val)) {
+        reject(new Error('Invalid project name'));
+
+        return;
+      }
 
       resultDetails[name] = val;
     });
