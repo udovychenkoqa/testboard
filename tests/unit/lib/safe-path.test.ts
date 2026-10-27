@@ -68,3 +68,16 @@ describe('stripReservedMetadata', () => {
     ).toEqual({ job: 'nightly', env: 'qa' });
   });
 });
+
+describe('isSafeProjectName', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { isSafeProjectName } = require('@/app/lib/safePath');
+
+  it.each([undefined, '', 'hanimax', 'team/web', 'My Project'])('accepts %p', (value) => {
+    expect(isSafeProjectName(value)).toBe(true);
+  });
+
+  it.each(['..', '../x', 'a/../b', '/abs', 'a\\..\\b', 42])('rejects %p', (value) => {
+    expect(isSafeProjectName(value)).toBe(false);
+  });
+});

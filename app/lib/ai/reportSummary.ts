@@ -1,8 +1,8 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
 import type JSZip from 'jszip';
 
+import fs from 'node:fs/promises';
+
+import { resolveInside } from '../safePath';
 import { REPORTS_FOLDER } from '../storage/constants';
 import {
   getFailureDetails,
@@ -14,6 +14,7 @@ import {
 } from '../parser';
 import { storage } from '../storage';
 import { withError } from '../withError';
+
 import { circuitFor } from './circuitBreaker';
 import { clusterFailures, type FailureCluster } from './clustering';
 import { fitClustersToBudget, MAX_CLUSTERS_FOR_DEEP_ANALYSIS, truncateMiddle } from './promptBudget';
@@ -434,9 +435,14 @@ const writeStatus = async (
     return result;
   }
 
-  const targetPath = path.join(REPORTS_FOLDER, projectPath, reportId, AI_STATUS_FILENAME);
+  // projectPath/reportId come from stored metadata; resolveInside keeps a tampered value from leaving REPORTS_FOLDER.
   const { error } = await withError(
-    fs.writeFile(targetPath, JSON.stringify({ ...result, updatedAt: new Date().toISOString() }), 'utf-8'),
+    (async () =>
+      fs.writeFile(
+        resolveInside(REPORTS_FOLDER, projectPath, reportId, AI_STATUS_FILENAME),
+        JSON.stringify({ ...result, updatedAt: new Date().toISOString() }),
+        'utf-8',
+      ))(),
   );
 
   if (error) {
@@ -544,9 +550,10 @@ export const generateReportAiSummary = async (
     return writeStatus(projectPath, reportId, { status: 'failed', reason });
   }
 
-  const targetPath = path.join(REPORTS_FOLDER, projectPath, reportId, AI_SUMMARY_FILENAME);
-
-  const { error: writeError } = await withError(fs.writeFile(targetPath, markdown, 'utf-8'));
+  const { error: writeError } = await withError(
+    (async () =>
+      fs.writeFile(resolveInside(REPORTS_FOLDER, projectPath, reportId, AI_SUMMARY_FILENAME), markdown, 'utf-8'))(),
+  );
 
   if (writeError) {
     const reason = `failed to write summary: ${writeError.message}`;

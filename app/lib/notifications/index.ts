@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
+import { resolveInside } from '../safePath';
 import { withError } from '../withError';
 import { type ReportHistory } from '../storage';
 import { DATA_FOLDER, REPORTS_FOLDER } from '../storage/constants';
@@ -215,8 +216,9 @@ const aiSummaryToMrkdwn = (markdown: string): string =>
 // so the file exists by the time we read it.
 const readAiSummaryMrkdwn = async (report: ReportHistory): Promise<string | null> => {
   const projectPath = report.project ? `${encodeURI(report.project)}/` : '';
-  const file = path.join(REPORTS_FOLDER, projectPath, report.reportID, 'ai-summary.md');
-  const { result } = await withError(fs.readFile(file, 'utf-8'));
+  const { result } = await withError(
+    (async () => fs.readFile(resolveInside(REPORTS_FOLDER, projectPath, report.reportID, 'ai-summary.md'), 'utf-8'))(),
+  );
 
   if (!result?.trim()) return null;
 

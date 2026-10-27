@@ -71,6 +71,6 @@ untouched.
 
 Add a new proxy host:
 
-- **Forward Hostname/IP:** `172.16.100.46`
+- **Forward Hostname/IP:** `<host-ip>` (the address of the machine that runs `docker compose`; `127.0.0.1` if NPM runs on that same machine)
 - **Forward Port:** `<HOST_PORT>`
 - **Domain:** `testboard.example.com` (or another)

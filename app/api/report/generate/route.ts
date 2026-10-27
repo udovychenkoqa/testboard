@@ -1,3 +1,4 @@
+import { isSafeProjectName } from '@/app/lib/safePath';
 import { stripReservedMetadata } from '@/app/lib/reservedMetadata';
 import { service } from '@/app/lib/service';
 import { withError } from '@/app/lib/withError';
@@ -11,6 +12,10 @@ export async function POST(request: Request) {
     return new Response(reqError.message, { status: 400 });
   }
   const { resultsIds, project, playwrightVersion, ...rest } = reqBody;
+
+  if (!isSafeProjectName(project)) {
+    return Response.json({ error: 'Invalid project name' }, { status: 400 });
+  }
 
   try {
     const result = await service.generateReport(resultsIds, {
