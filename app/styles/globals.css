@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Micro-interactions (tasteful, motion-safe) --------------------------- */
+@keyframes rr-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Gentle entrance for page content / cards. */
+.rr-enter {
+  animation: rr-fade-in-up 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Small stagger helpers so grouped cards cascade in slightly. */
+.rr-enter-2 {
+  animation-delay: 0.05s;
+}
+.rr-enter-3 {
+  animation-delay: 0.1s;
+}
+
+/* Table rows: smooth hover tint. */
+.rr-row {
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Page loader: the logo's trend line draws itself, then the green point pops.
+   One 1.6s loop; the line uses pathLength=100 so the dash maths is fixed. */
+@keyframes rr-loader-line {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  55%,
+  85% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes rr-loader-dot {
+  0%,
+  45% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  70%,
+  85% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+@keyframes rr-loader-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+.rr-loader-line {
+  stroke-dasharray: 100;
+  animation: rr-loader-line 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.rr-loader-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rr-loader-dot 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+/* Settings: the card a rail click lands on gets an indigo ring that fades out. */
+@keyframes rr-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 2px hsl(var(--heroui-primary) / 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 2px hsl(var(--heroui-primary) / 0);
+  }
+}
+.rr-flash {
+  animation: rr-flash 1.2s ease-out;
+}
+
+/* Respect users who prefer less motion — disable entrance animation entirely. */
+@media (prefers-reduced-motion: reduce) {
+  .rr-enter,
+  .rr-enter-2,
+  .rr-enter-3 {
+    animation: none;
+  }
+  /* Loader: static full mark that gently pulses instead of drawing. */
+  .rr-loader-line,
+  .rr-loader-dot {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .rr-loader {
+    animation: rr-loader-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@layer base {
+  /* Visible keyboard focus everywhere (was unset). */
+  :focus-visible {
+    outline: 2px solid hsl(var(--heroui-primary));
+    outline-offset: 2px;
+  }
+}
+
+@layer base {
+  :root {
+    --chart-1: 160 60% 45%;
+    --chart-2: 350 70% 56%;
+    --chart-3: 0 8% 65%;
+    --chart-4: 37 91% 55%;
+    --chart-5: 340 75% 55%;
+  }
+
+  .dark {
+    --chart-1: 160 60% 45%;
+    --chart-2: 350 70% 56%;
+    --chart-3: 0 8% 65%;
+    --chart-4: 37 91% 55%;
+    --chart-5: 340 75% 55%;
+  }
+}
