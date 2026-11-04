@@ -46,17 +46,16 @@ a 404.
 
 - `.env` holds real local values and is **never committed**. `.env.example` has only variable names and
   placeholders.
-- On the host, CI updates part of `.env` from GitLab CI/CD variables (`ANTHROPIC_*`, `GITLAB_*`, `AUTH_GOOGLE_*`…);
-  the rest is maintained by hand.
+- In production, secrets and team-owned settings are in Vault (`aws-k8s-tf-uw2-ht-hm-dev/apps/testboard/dev/secrets`),
+  the rest in the Helm values (`devops/etc`, `charts/tools/testboard/values.develop.yaml`).
 - Tokens for local checks are throwaway (`openssl rand -hex 32`). Real tokens never go into tests,
   screenshots or chat.
 - `data/` is real data (reports, `config.json`, `testboard.db`). Use a separate `DATA_DIR` for experiments.
 
 ## Deployment
 
-Step by step in [deploy/README.md](../deploy/README.md). In short:
-
-- push to `master` → GitLab CI updates `.env` on the host → `deploy/redeploy.sh` rebuilds and restarts the
-  container;
-- health check: `GET /api/ping`;
-- data lives in the `data/` volume. Backing up that folder backs up reports, settings and test cases.
+- push to `master` → GitLab CI builds the image → Argo CD (`develop-testboard`) rolls it out on
+  `aws-k8s-tf-uw2-ht-hm-dev`, namespace `testboard`; the job waits until the pod is healthy;
+- health check: `GET /api/ping` (Kubernetes probes);
+- one pod (SQLite), data on a 50 GiB EBS volume with daily snapshots kept 14 days. That covers reports,
+  settings and test cases.
