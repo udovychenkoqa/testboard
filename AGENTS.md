@@ -14,7 +14,7 @@ test management. Node ≥ 22 (`.nvmrc`).
 | How to write code here (TS, React, API routes, i18n, UI) | [docs/coding-guidelines.md](docs/coding-guidelines.md) |
 | Unit and e2e tests, TDD, verification                    | [docs/testing.md](docs/testing.md)                     |
 | Branches, commits, reviews, secrets, deploy              | [docs/workflow.md](docs/workflow.md)                   |
-| Deploying to the host                                    | [deploy/README.md](deploy/README.md)                   |
+| Old single-host compose setup (local prod image)         | [deploy/README.md](deploy/README.md)                   |
 
 ## Commands
 

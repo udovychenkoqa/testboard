@@ -153,13 +153,15 @@ Then `service.saveResult` → storage → result metadata.
 
 ## 5. Deployment
 
-- Docker image (`Dockerfile`): Next standalone. Host details: [deploy/README.md](../deploy/README.md).
-- `master` → GitLab CI (`.gitlab-ci.yml`) updates part of the host's `.env` from CI/CD variables and restarts
-  via `deploy/redeploy.sh`, then runs a health check. The rest of `.env` is maintained by hand on the host.
+- Docker image (`Dockerfile`): Next standalone.
+- `master` → GitLab CI (`.gitlab-ci.yml`, build and deploy jobs included from `devops/etc`) pushes the image
+  and Argo CD rolls it out on EKS `aws-k8s-tf-uw2-ht-hm-dev` (chart `charts/tools/testboard` in `devops/etc`).
+  Secrets come from Vault, the rest from the Helm values.
 - Tag `reporter-v<version>` → GitLab CI publishes `@testboard/reporter` (`packages/reporter`) to the
   project's npm registry.
-- Data (`data/`) is a volume on the host. The test-management SQLite file lives there too, so backing up
-  `data/` covers reports, settings and test cases.
+- Data (`data/`) is an EBS volume (ReadWriteOnce, daily snapshots). The test-management SQLite file lives
+  there too, so the snapshots cover reports, settings and test cases. This is also why there is exactly one
+  pod.
 
 ## 6. Known limitations and debt
 

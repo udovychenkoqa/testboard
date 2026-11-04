@@ -53,7 +53,9 @@ The main variables are listed with comments in [`.env.example`](.env.example):
 | `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_AUTOTESTS_PROJECT`, `GITLAB_REF` | Autotest pipelines                                       |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`                                 | AI failure summary                                       |
 
-In production, GitLab CI writes the `GITLAB_*`, `ANTHROPIC_*` and Google values into the host's `.env`.
+In the deployed instance the secrets and team-owned settings come from Vault
+(`aws-k8s-tf-uw2-ht-hm-dev/apps/testboard/dev/secrets`), the rest from the Helm values in
+`honeytech-video-platform/devops/etc` (`charts/tools/testboard/values.develop.yaml`).
 
 ## Checks
 
@@ -66,8 +68,16 @@ npm run test:e2e       # Playwright; own server on :3100 with throwaway data
 
 ## Deploy
 
-Pushing to `master` deploys automatically through GitLab CI (`.gitlab-ci.yml`): env update, then
-`docker compose` on the host, then a healthcheck. Details are in [deploy/README.md](deploy/README.md).
+Pushing to `master` deploys automatically through GitLab CI (`.gitlab-ci.yml`, jobs included from
+`devops/etc`): the image is built and pushed to this project's registry, then Argo CD (app `develop-testboard`)
+rolls it out to the `testboard` namespace of `aws-k8s-tf-uw2-ht-hm-dev` and the job waits until the pod is
+healthy. Data lives on a 50 GiB EBS volume with daily snapshots. URL:
+https://testboard.aws-k8s-tf-uw2-ht-hm-dev.pento.ink (office/VPN and CI runner IPs only). Autotests that run on the
+dev cluster's own runner (tag `aws-k8s-tf-uw2-ht-hm-dev-gitlab-runner`) can upload to
+`http://testboard.testboard.svc.cluster.local:3000` instead, bypassing Cloudflare and its upload limits.
+
+[deploy/](deploy/README.md) describes the previous single-host `docker compose` setup; it is kept for running
+the production image locally.
 
 ## Docs
 
