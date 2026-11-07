@@ -55,6 +55,12 @@ Before saying a change is done: `test:unit`, `tsc`, `lint` (no new errors) and, 
 - `DATA_DIR` may be relative or absolute; it is resolved with `path.resolve` (`app/lib/storage/constants.ts`).
 - Result upload lives in the **Pages** router (`pages/api/result/upload.ts`) because it streams multipart
   bodies with Busboy; don't move it to App Router.
+- `@testboard/reporter` (`packages/reporter`) is pinned by exact version in the autotests repo
+  (`playwright-hanimax`) and calls only `PUT /api/result/upload` and `POST /api/report/generate`. Keep those
+  two contracts backward compatible (new fields optional, nothing removed), since Testboard may deploy before
+  the autotests update. A change to the reporter code or to those contracts needs a release: bump
+  `packages/reporter/package.json` `version`, merge, push tag `reporter-v<version>` (CI publishes it), then
+  bump the pin in the autotests repo. Any other Testboard change needs no release.
 - `better-sqlite3` is native: it is listed in `serverComponentsExternalPackages` and the Docker deps stage
   needs `python3 make g++`.
 - HeroUI `Button as={NextLink}` renders `<a role="button">`; query it by text or `button` role in tests.
