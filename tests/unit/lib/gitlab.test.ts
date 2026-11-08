@@ -56,7 +56,23 @@ describe('gitlab client', () => {
     expect(load().isGitlabConfigured()).toBe(true);
     expect(load({ GITLAB_TOKEN: undefined }).isGitlabConfigured()).toBe(false);
     expect(load({ GITLAB_URL: undefined }).isGitlabConfigured()).toBe(false);
-    expect(load({ GITLAB_AUTOTESTS_PROJECT: undefined }).isGitlabConfigured()).toBe(false);
+    expect(load({ GITLAB_AUTOTESTS_PROJECT: '' }).isGitlabConfigured()).toBe(false);
+  });
+
+  it('defaults to the Hanimax autotests project on master', async () => {
+    const gitlab = load({ GITLAB_AUTOTESTS_PROJECT: undefined, GITLAB_REF: undefined });
+
+    expect(gitlab.isGitlabConfigured()).toBe(true);
+
+    fetchMock.mockResolvedValueOnce(json(apiPipeline({ status: 'created' })));
+    await gitlab.createPipeline({ env: 'dev', mode: 'smoke', skip_visual_checks: false });
+
+    const [url, init] = fetchMock.mock.calls[0];
+
+    expect(url).toBe(
+      'https://gitlab.example.com/api/v4/projects/honeytech-video-platform%2Fvideo-platform%2Fplaywright-hanimax/pipeline',
+    );
+    expect(JSON.parse(init.body).ref).toBe('master');
   });
 
   it('creates a pipeline on the configured ref with inputs', async () => {

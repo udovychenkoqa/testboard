@@ -43,6 +43,9 @@ export const env = cleanEnv(process.env, {
   // Run autotests from the UI through GitLab pipelines: off unless URL, token and project are set.
   GITLAB_URL: str({ desc: 'GitLab base URL, e.g. https://gitlab.com', default: undefined }),
   GITLAB_TOKEN: str({ desc: 'GitLab access token with api scope (server-side only)', default: undefined }),
-  GITLAB_AUTOTESTS_PROJECT: str({ desc: 'Autotests project path (group/name) or numeric id', default: undefined }),
-  GITLAB_REF: str({ desc: 'Branch the autotests pipeline runs on', default: 'main' }),
+  GITLAB_AUTOTESTS_PROJECT: str({
+    desc: 'Autotests project path (group/name) or numeric id',
+    default: 'honeytech-video-platform/video-platform/playwright-hanimax',
+  }),
+  GITLAB_REF: str({ desc: 'Branch the autotests pipeline runs on', default: 'master' }),
 });

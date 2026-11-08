@@ -65,8 +65,8 @@ services:
       # Automated tab says "not configured", no errors.
       GITLAB_URL: ${GITLAB_URL:-}
       GITLAB_TOKEN: ${GITLAB_TOKEN:-}
-      GITLAB_AUTOTESTS_PROJECT: ${GITLAB_AUTOTESTS_PROJECT:-}
-      GITLAB_REF: ${GITLAB_REF:-main}
+      GITLAB_AUTOTESTS_PROJECT: ${GITLAB_AUTOTESTS_PROJECT:-honeytech-video-platform/video-platform/playwright-hanimax}
+      GITLAB_REF: ${GITLAB_REF:-master}
       # Публічна адреса сервера — для лінків у Slack/webhook-нотифікаціях
       BASE_URL: ${BASE_URL:-https://testboard.example.com}
     volumes:
