@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 
 import { env } from './config/env';
-import { AUTH_ENABLED, GOOGLE_ENABLED, ROLE_POLICY } from './lib/authFlags';
+import { AUTH_ENABLED, GOOGLE_ENABLED, ROLE_POLICY, TOKEN_LOGIN_ENABLED } from './lib/authFlags';
 import { safeEqual } from './lib/auth';
 import { resolveRole, ROLES, type Role } from './lib/access';
 
@@ -39,10 +39,11 @@ const buildProviders = () => {
 
   // The API_TOKEN login is the service/admin path — a correct token grants the
   // admin role. apiToken is the real token so the browser keeps passing it as
-  // the Authorization header (middleware's CI path).
+  // the Authorization header (middleware's CI path). Not registered while Google
+  // is on (see tokenLogin.ts), so the server rejects it and the form hides it.
   const expectedToken = env.API_TOKEN;
 
-  if (expectedToken) {
+  if (expectedToken && TOKEN_LOGIN_ENABLED) {
     providers.push(
       Credentials({
         name: 'API Token',

@@ -1,5 +1,6 @@
 import { env } from '@/app/config/env';
 import { type RolePolicy } from '@/app/lib/access';
+import { isTokenLoginEnabled } from '@/app/lib/tokenLogin';
 
 // Google is on only when both credentials are present.
 export const GOOGLE_ENABLED = !!env.AUTH_GOOGLE_ID && !!env.AUTH_GOOGLE_SECRET;
@@ -8,6 +9,12 @@ export const GOOGLE_ENABLED = !!env.AUTH_GOOGLE_ID && !!env.AUTH_GOOGLE_SECRET;
 // login is configured. When neither is set the app stays fully open, exactly
 // as before this feature (open mode = implicit admin).
 export const AUTH_ENABLED = !!env.API_TOKEN || GOOGLE_ENABLED;
+
+export const TOKEN_LOGIN_ENABLED = isTokenLoginEnabled({
+  hasApiToken: !!env.API_TOKEN,
+  googleEnabled: GOOGLE_ENABLED,
+  forced: env.AUTH_TOKEN_LOGIN,
+});
 
 const splitList = (value: string): string[] =>
   value

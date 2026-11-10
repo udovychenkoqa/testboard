@@ -54,6 +54,12 @@ export const can = (role: Role | null | undefined, capability: Capability): bool
   return !!role && capability !== CAPABILITIES.manageSettings;
 };
 
+// The API token (Authorization header) lives in CI variables and on QA machines, so it gets only what
+// CI and scripts use: uploads, report generation, reads and test management. Settings, roles and
+// pipeline triggers stay with signed-in people.
+export const apiTokenCan = (capability: Capability): boolean =>
+  capability !== CAPABILITIES.manageSettings && capability !== CAPABILITIES.runTests;
+
 // --- Assigning a role from an email (env-driven, no DB) --------------------
 
 export interface RolePolicy {

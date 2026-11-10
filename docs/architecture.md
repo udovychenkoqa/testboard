@@ -92,7 +92,9 @@ Key decisions:
 
 - **NextAuth** (`app/auth.config.ts` is the edge-compatible part, `app/auth.ts` the Node part). Two ways
   to sign in:
-  - API token (`API_TOKEN`) — for CI and as a fallback UI login;
+  - API token (`API_TOKEN`) — for CI; as a UI login only while Google is off, or with
+    `AUTH_TOKEN_LOGIN=true` as break-glass (`app/lib/tokenLogin.ts`). That sign-in grants admin, and CI
+    variables hold the token;
   - Google OAuth (`AUTH_GOOGLE_ID/SECRET`) — for people, filtered by domain.
 - With neither configured the app is fully open (`AUTH_ENABLED=false`): "open mode" = implicit admin.
 - **Roles** (`app/lib/access.ts`):
@@ -106,6 +108,9 @@ Key decisions:
 - Where a role comes from: `AUTH_ADMIN_EMAILS` (env), an assignment in Settings (`config.access.users`,
   `roleStore.ts`), otherwise `viewer` for an allowed domain.
 - **Enforcement** happens in `middleware.ts` for every `/api/*` via `can(role, requiredCapability(...))`.
+  A request with no session but a matching `Authorization: <API_TOKEN>` header (CI, scripts) gets
+  `apiTokenCan()`: uploads, report generation, reads and test management, but not Settings, roles or
+  pipeline triggers.
   `/api/tm/*`: GET needs `view`, everything else `manage:cases`. `tmRoute` repeats the check in the Node
   runtime (session + API token).
 

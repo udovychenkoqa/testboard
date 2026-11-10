@@ -1,4 +1,4 @@
-import { ASSIGNABLE_ROLES, CAPABILITIES, can, requiredCapability, ROLES } from '@/app/lib/access';
+import { apiTokenCan, ASSIGNABLE_ROLES, CAPABILITIES, can, requiredCapability, ROLES } from '@/app/lib/access';
 
 describe('manage:cases', () => {
   it('is granted to admin and tester only', () => {
@@ -44,5 +44,32 @@ describe('requiredCapability for /api/autotests', () => {
 
   it('listing builds needs only view', () => {
     expect(requiredCapability('/api/autotests/builds', 'GET')).toBe(CAPABILITIES.view);
+  });
+});
+
+describe('the API token (CI and scripts)', () => {
+  const tokenCan = (path: string, method: string) => apiTokenCan(requiredCapability(path, method));
+
+  it.each([
+    ['PUT', '/api/result/upload'],
+    ['POST', '/api/report/generate'],
+    ['GET', '/api/report/list'],
+    ['GET', '/api/tm/projects'],
+    ['POST', '/api/tm/projects/hw/cases'],
+    ['PATCH', '/api/tm/cases/7'],
+    ['PATCH', '/api/tm/runs/2/cases/5'],
+  ])('may %s %s', (method, path) => {
+    expect(tokenCan(path, method)).toBe(true);
+  });
+
+  it.each([
+    ['PATCH', '/api/config'],
+    ['GET', '/api/access'],
+    ['POST', '/api/access'],
+    ['POST', '/api/autotests/trigger'],
+    ['POST', '/api/autotests/cancel'],
+    ['POST', '/api/autotests/rerun'],
+  ])('may not %s %s', (method, path) => {
+    expect(tokenCan(path, method)).toBe(false);
   });
 });

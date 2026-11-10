@@ -5,7 +5,7 @@ import { authConfig } from '@/app/auth.config';
 import { CommonResponseFactory } from '@/app/lib/network';
 import { isAuthorized } from '@/app/lib/auth';
 import { AUTH_ENABLED } from '@/app/lib/authFlags';
-import { can, requiredCapability } from '@/app/lib/access';
+import { apiTokenCan, can, requiredCapability } from '@/app/lib/access';
 import { env } from '@/app/config/env';
 import { withBase } from '@/app/lib/url';
 
@@ -46,24 +46,24 @@ export default auth((request) => {
 
   if (isUnprotected) return NextResponse.next();
 
-  // CI / programmatic path: a matching Authorization header is full access
-  // (the service token behaves as admin, unchanged from before).
+  const capability = requiredCapability(pathname, method);
+
+  // Human session path first (Google, or the API-token credentials login): the role decides. A token
+  // sign-in session also sends the token as Authorization, and must keep its admin role.
+  const role = request.auth?.user?.role;
+
+  if (role) {
+    return can(role, capability) ? NextResponse.next() : CommonResponseFactory.buildForbiddenResponse();
+  }
+
+  // CI / programmatic path: a matching Authorization header gets the token's capabilities (no settings,
+  // roles or pipeline triggers; see apiTokenCan).
   if (
     env.API_TOKEN &&
     isAuthorized({ actualAuthToken: request.headers.get('Authorization'), expectedAuthToken: env.API_TOKEN })
   ) {
-    return NextResponse.next();
+    return apiTokenCan(capability) ? NextResponse.next() : CommonResponseFactory.buildForbiddenResponse();
   }
 
-  // Human session path (Google, or the API-token credentials login): must be
-  // signed in, and must have the role capability for this route.
-  const role = request.auth?.user?.role;
-
-  if (!role) return CommonResponseFactory.buildUnauthorizedResponse();
-
-  if (!can(role, requiredCapability(pathname, method))) {
-    return CommonResponseFactory.buildForbiddenResponse();
-  }
-
-  return NextResponse.next();
+  return CommonResponseFactory.buildUnauthorizedResponse();
 });

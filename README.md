@@ -42,7 +42,8 @@ The main variables are listed with comments in [`.env.example`](.env.example):
 
 | Variable                                                               | Purpose                                                  |
 | ---------------------------------------------------------------------- | -------------------------------------------------------- |
-| `API_TOKEN`                                                            | CI uploads and sign-in with the token                    |
+| `API_TOKEN`                                                            | CI uploads; UI sign-in only while Google is off          |
+| `AUTH_TOKEN_LOGIN`                                                     | `true` keeps token sign-in next to Google (break-glass)  |
 | `AUTH_SECRET`                                                          | Signs sessions; required whenever sign-in is enabled     |
 | `AUTH_URL`                                                             | Public URL; required behind a proxy (also used for PDFs) |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`                                 | Google sign-in, on only when both are set                |
