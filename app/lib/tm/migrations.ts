@@ -102,4 +102,14 @@ export const MIGRATIONS: string[] = [
     recorded_at TEXT NOT NULL
   );
   `,
+  // 4: an uploaded project logo. The image sits in its own table so listing projects never loads it;
+  // logo_updated_at on the project is enough to draw it and bust the browser cache.
+  `
+  CREATE TABLE tm_project_logos (
+    project_id INTEGER PRIMARY KEY REFERENCES tm_projects(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    data BLOB NOT NULL
+  );
+  ALTER TABLE tm_projects ADD COLUMN logo_updated_at TEXT;
+  `,
 ];

@@ -20,6 +20,7 @@ import { CaseList } from '@/app/components/tm/case-list';
 import { CasePanel } from '@/app/components/tm/case-panel';
 import { ConfirmModal } from '@/app/components/tm/confirm-modal';
 import { NameModal } from '@/app/components/tm/name-modal';
+import { ProjectAvatar } from '@/app/components/tm/project-avatar';
 import { SuiteTree } from '@/app/components/tm/suite-tree';
 import useQuery from '@/app/hooks/useQuery';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
@@ -128,7 +129,16 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
             {t('cases.back')} / {project?.code}
           </NextLink>
         }
-        title={project?.name ?? key}
+        title={
+          project ? (
+            <span className="flex items-center gap-2">
+              <ProjectAvatar project={project} size="sm" />
+              {project.name}
+            </span>
+          ) : (
+            key
+          )
+        }
       />
 
       {!canEdit && (

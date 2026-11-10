@@ -8,18 +8,17 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import { useTranslations } from 'next-intl';
 import { FolderKanban, Pencil, Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { PageHeader } from '@/app/components/page-header';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { AutomationBar } from '@/app/components/tm/automation-bar';
 import { DeleteProjectModal } from '@/app/components/tm/delete-project-modal';
-import { NameModal } from '@/app/components/tm/name-modal';
+import { EditProjectModal } from '@/app/components/tm/edit-project-modal';
 import { NewProjectModal } from '@/app/components/tm/new-project-modal';
+import { ProjectAvatar } from '@/app/components/tm/project-avatar';
 import useQuery from '@/app/hooks/useQuery';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
-import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { useTmProject } from '@/app/hooks/useTmProject';
 
 export default function TestCasesProjectsPage() {
@@ -29,12 +28,9 @@ export default function TestCasesProjectsPage() {
   const [, setProject] = useTmProject();
   const [isOpen, setIsOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ProjectSummary | null>(null);
-  const [toRename, setToRename] = useState<ProjectSummary | null>(null);
+  // A key, not a snapshot: the edit dialog reads the live project so a new logo shows up in it at once.
+  const [toEdit, setToEdit] = useState<string | null>(null);
   const tc = useTranslations('tm.common');
-  const rename = useTmMutation('/api/tm/projects', 'PATCH', () => {
-    setToRename(null);
-    toast.success(tc('saved'));
-  });
   const { data: projects, isPending } = useQuery<ProjectSummary[]>('/api/tm/projects');
 
   const open = (key: string) => {
@@ -88,7 +84,10 @@ export default function TestCasesProjectsPage() {
                   onClick={() => setProject(p.key)}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-[14px] font-semibold group-hover:text-primary">{p.name}</span>
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <ProjectAvatar project={p} />
+                      <span className="truncate text-[14px] font-semibold group-hover:text-primary">{p.name}</span>
+                    </div>
                     <span className="shrink-0 rounded-md bg-default-100 px-1.5 py-0.5 font-mono text-[11px] text-default-500">
                       {p.code}
                     </span>
@@ -124,12 +123,12 @@ export default function TestCasesProjectsPage() {
                   <div className="absolute bottom-3 right-3 flex gap-0.5">
                     <Button
                       isIconOnly
-                      aria-label={tc('rename')}
+                      aria-label={tc('edit')}
                       className="text-default-400 hover:text-foreground"
                       size="sm"
-                      title={tc('rename')}
+                      title={tc('edit')}
                       variant="light"
-                      onPress={() => setToRename(p)}
+                      onPress={() => setToEdit(p.key)}
                     >
                       <Pencil size={14} />
                     </Button>
@@ -152,14 +151,7 @@ export default function TestCasesProjectsPage() {
         )}
       </div>
       <DeleteProjectModal project={toDelete} onClose={() => setToDelete(null)} />
-      <NameModal
-        initial={toRename?.name ?? ''}
-        isOpen={toRename !== null}
-        isPending={rename.isPending}
-        title={tc('rename')}
-        onClose={() => setToRename(null)}
-        onSubmit={(name) => toRename && rename.mutate({ path: `/api/tm/projects/${toRename.key}`, body: { name } })}
-      />
+      <EditProjectModal project={projects?.find((p) => p.key === toEdit) ?? null} onClose={() => setToEdit(null)} />
       <NewProjectModal isOpen={isOpen} onClose={() => setIsOpen(false)} onCreated={(p) => open(p.key)} />
     </div>
   );

@@ -11,6 +11,8 @@ export interface Project {
   code: string;
   nextCaseNumber: number;
   createdAt: string;
+  // Set while an uploaded logo exists (initials otherwise); part of the logo URL so a new upload isn't cached.
+  logoUpdatedAt: string | null;
 }
 
 export interface AutomationStats {
@@ -31,6 +33,7 @@ interface ProjectRow {
   code: string;
   next_case_number: number;
   created_at: string;
+  logo_updated_at: string | null;
 }
 
 const toProject = (row: ProjectRow): Project => ({
@@ -40,6 +43,7 @@ const toProject = (row: ProjectRow): Project => ({
   code: row.code,
   nextCaseNumber: row.next_case_number,
   createdAt: row.created_at,
+  logoUpdatedAt: row.logo_updated_at,
 });
 
 export const getProject = (db: TmDb, key: string): Project => {
@@ -152,6 +156,7 @@ export const deleteProject = (db: TmDb, key: string): void => {
     db.prepare('DELETE FROM tm_runs WHERE project_id = ?').run(id);
     db.prepare('DELETE FROM tm_cases WHERE project_id = ?').run(id);
     db.prepare('DELETE FROM tm_suites WHERE project_id = ?').run(id);
+    db.prepare('DELETE FROM tm_project_logos WHERE project_id = ?').run(id);
     db.prepare('DELETE FROM tm_projects WHERE id = ?').run(id);
   })();
 };

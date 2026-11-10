@@ -9,6 +9,7 @@ const TABLES = [
   'tm_case_steps',
   'tm_case_tags',
   'tm_cases',
+  'tm_project_logos',
   'tm_projects',
   'tm_run_cases',
   'tm_runs',

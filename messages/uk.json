@@ -618,7 +618,16 @@
       "legendAutomated": "автоматизовано",
       "legendPlanned": "в плані",
       "legendManual": "вручну",
-      "barTitle": "Автоматизовано {automated}, в плані {planned} з {total}"
+      "barTitle": "Автоматизовано {automated}, в плані {planned} з {total}",
+      "editTitle": "Налаштування проєкту",
+      "changeLogo": "Змінити лого",
+      "removeLogo": "Прибрати",
+      "logoHint": "PNG, JPG або WebP, до 200 КБ. Без лого — ініціали проєкту.",
+      "logoUpdated": "Лого оновлено",
+      "logoRemoved": "Лого прибрано",
+      "logoFailed": "Не вдалося оновити лого",
+      "logoBadType": "Потрібен PNG, JPG або WebP",
+      "logoTooBig": "Файл більший за 200 КБ"
     },
     "cases": {
       "back": "Усі проєкти",

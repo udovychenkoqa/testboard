@@ -618,7 +618,16 @@
       "legendAutomated": "automated",
       "legendPlanned": "planned",
       "legendManual": "manual",
-      "barTitle": "Automated {automated}, planned {planned} of {total}"
+      "barTitle": "Automated {automated}, planned {planned} of {total}",
+      "editTitle": "Project settings",
+      "changeLogo": "Change logo",
+      "removeLogo": "Remove",
+      "logoHint": "PNG, JPG or WebP, up to 200 KB. Without a logo the project shows its initials.",
+      "logoUpdated": "Logo updated",
+      "logoRemoved": "Logo removed",
+      "logoFailed": "Couldn't update the logo",
+      "logoBadType": "Use a PNG, JPG or WebP image",
+      "logoTooBig": "The file is larger than 200 KB"
     },
     "cases": {
       "back": "All projects",
