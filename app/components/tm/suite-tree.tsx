@@ -9,6 +9,7 @@ import { ChevronDown, ChevronRight, Folder, Layers, MoreHorizontal } from 'lucid
 
 import { CASE_DRAG_TYPE } from '@/app/lib/tm/constants';
 import { afterMenuCloses } from '@/app/lib/after-menu-closes';
+import { suiteTotals } from '@/app/lib/tm/suiteTotals';
 
 interface SuiteTreeProps {
   suites: SuiteNode[];
@@ -23,8 +24,8 @@ interface SuiteTreeProps {
   onDropCases?: (suiteId: number, caseIds: number[]) => void;
 }
 
-// Counts next to each suite are its own cases only (like Qase): a total that included sub-suites made a case
-// moved into a sub-suite look like it sat in both.
+// A leaf suite shows its own cases. A suite with sub-suites shows the total of its whole branch, dimmed so it
+// doesn't read as cases sitting in that folder; own-only counts left parents at 0.
 const childrenOf = (suites: SuiteNode[]) => {
   const children = new Map<number | null, SuiteNode[]>();
 
@@ -74,6 +75,7 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
         }
       : {};
   const children = useMemo(() => childrenOf(suites), [suites]);
+  const totals = useMemo(() => suiteTotals(suites), [suites]);
 
   const toggle = (id: number) =>
     setCollapsed((prev) => {
@@ -117,7 +119,14 @@ export const SuiteTree: React.FC<SuiteTreeProps> = ({
           >
             <Folder className="shrink-0" size={13} />
             <span className="truncate">{suite.name}</span>
-            <span className="ml-auto pl-2 font-mono text-[11px] text-default-400 tabular-nums">{suite.caseCount}</span>
+            <span
+              className={`ml-auto shrink-0 whitespace-nowrap pl-2 font-mono text-[11px] tabular-nums ${
+                kids.length ? 'text-default-400/70' : 'text-default-400'
+              }`}
+              title={kids.length ? t('cases.branchTotal') : undefined}
+            >
+              {kids.length ? (totals.get(suite.id) ?? suite.caseCount) : suite.caseCount}
+            </span>
           </button>
           {canEdit && (
             // HeroUI 2.7 restarts the menu's open animation when it repositions (~300 ms in) and on close, so

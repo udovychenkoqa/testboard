@@ -638,7 +638,8 @@
       "readOnly": "You can view test cases; editing needs the tester or admin role.",
       "dragCount": "{count, plural, one {# case} other {# cases}}",
       "autoResult": "Autotest:",
-      "openReport": "Open report"
+      "openReport": "Open report",
+      "branchTotal": "Total including all sub-suites"
     }
   }
 }

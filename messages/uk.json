@@ -638,7 +638,8 @@
       "readOnly": "Ви можете переглядати тест-кейси; для редагування потрібна роль tester або admin.",
       "dragCount": "{count, plural, one {# кейс} few {# кейси} many {# кейсів} other {# кейсу}}",
       "autoResult": "Автотест:",
-      "openReport": "Відкрити звіт"
+      "openReport": "Відкрити звіт",
+      "branchTotal": "Разом з усіма підсюїтами"
     }
   }
 }
