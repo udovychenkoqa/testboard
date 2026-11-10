@@ -13,9 +13,15 @@ export interface Project {
   createdAt: string;
 }
 
-export interface ProjectSummary extends Project {
+export interface AutomationStats {
   caseCount: number;
   automatedCount: number;
+  toAutomateCount: number;
+}
+
+export interface ProjectSummary extends Project, AutomationStats {
+  // Cases tagged smoke / @smoke (any case), the same tag the autotests run as their smoke suite.
+  smoke: AutomationStats;
 }
 
 interface ProjectRow {
@@ -86,15 +92,41 @@ export const listProjects = (db: TmDb): ProjectSummary[] => {
     .prepare(
       `SELECT p.*,
               COUNT(c.id) AS case_count,
-              COALESCE(SUM(c.automation = 'automated'), 0) AS automated_count
+              COALESCE(SUM(c.automation = 'automated'), 0) AS automated_count,
+              COALESCE(SUM(c.automation = 'to_automate'), 0) AS to_automate_count,
+              COALESCE(SUM(s.case_id IS NOT NULL), 0) AS smoke_count,
+              COALESCE(SUM(s.case_id IS NOT NULL AND c.automation = 'automated'), 0) AS smoke_automated_count,
+              COALESCE(SUM(s.case_id IS NOT NULL AND c.automation = 'to_automate'), 0) AS smoke_to_automate_count
          FROM tm_projects p
          LEFT JOIN tm_cases c ON c.project_id = p.id AND c.deleted_at IS NULL
+         LEFT JOIN (
+           SELECT DISTINCT case_id FROM tm_case_tags WHERE LOWER(LTRIM(tag, '@')) = 'smoke'
+         ) s ON s.case_id = c.id
         GROUP BY p.id
         ORDER BY p.name COLLATE NOCASE`,
     )
-    .all() as (ProjectRow & { case_count: number; automated_count: number })[];
+    .all() as (ProjectRow &
+    Record<
+      | 'case_count'
+      | 'automated_count'
+      | 'to_automate_count'
+      | 'smoke_count'
+      | 'smoke_automated_count'
+      | 'smoke_to_automate_count',
+      number
+    >)[];
 
-  return rows.map((row) => ({ ...toProject(row), caseCount: row.case_count, automatedCount: row.automated_count }));
+  return rows.map((row) => ({
+    ...toProject(row),
+    caseCount: row.case_count,
+    automatedCount: row.automated_count,
+    toAutomateCount: row.to_automate_count,
+    smoke: {
+      caseCount: row.smoke_count,
+      automatedCount: row.smoke_automated_count,
+      toAutomateCount: row.smoke_to_automate_count,
+    },
+  }));
 };
 
 export const updateProject = (db: TmDb, key: string, patch: { name?: string }): Project => {

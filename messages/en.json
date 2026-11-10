@@ -611,7 +611,14 @@
       "deleteTitle": "Delete “{name}”?",
       "deleteWarning": "This permanently deletes the project with all its suites, {count, plural, one {# case} other {# cases}} and every run. This can’t be undone.",
       "deleteConfirmLabel": "Type {key} to confirm",
-      "deleted": "Project “{name}” deleted"
+      "deleted": "Project “{name}” deleted",
+      "overall": "Overall",
+      "smoke": "Smoke",
+      "noSmoke": "Smoke: no cases tagged smoke",
+      "legendAutomated": "automated",
+      "legendPlanned": "planned",
+      "legendManual": "manual",
+      "barTitle": "Automated {automated}, planned {planned} of {total}"
     },
     "cases": {
       "back": "All projects",

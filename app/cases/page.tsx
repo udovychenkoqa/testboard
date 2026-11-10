@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { PageHeader } from '@/app/components/page-header';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
+import { AutomationBar } from '@/app/components/tm/automation-bar';
 import { DeleteProjectModal } from '@/app/components/tm/delete-project-modal';
 import { NameModal } from '@/app/components/tm/name-modal';
 import { NewProjectModal } from '@/app/components/tm/new-project-modal';
@@ -93,14 +94,31 @@ export default function TestCasesProjectsPage() {
                     </span>
                   </div>
                   <span className="font-mono text-[11.5px] text-default-400">{p.key}</span>
-                  <div className="flex items-center gap-3 text-[12px] text-default-500">
-                    <span>{t('cases', { count: p.caseCount })}</span>
-                    {p.caseCount > 0 && (
-                      <span className="text-primary">
-                        {t('automated', { percent: Math.round((p.automatedCount / p.caseCount) * 100) })}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-[12px] text-default-500">{t('cases', { count: p.caseCount })}</span>
+                  {p.caseCount > 0 && (
+                    <div className="flex flex-col gap-2 pt-1">
+                      <AutomationBar label={t('overall')} stats={p} />
+                      {p.smoke.caseCount > 0 ? (
+                        <AutomationBar label={t('smoke')} stats={p.smoke} />
+                      ) : (
+                        <span className="text-[11.5px] text-default-400">{t('noSmoke')}</span>
+                      )}
+                      <div className="flex flex-wrap gap-x-2.5 gap-y-1 pr-16 text-[10.5px] text-default-400">
+                        <span className="flex items-center gap-1">
+                          <i className="h-2 w-2 rounded-sm bg-primary" />
+                          {t('legendAutomated')}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <i className="h-2 w-2 rounded-sm bg-primary/30" />
+                          {t('legendPlanned')}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <i className="h-2 w-2 rounded-sm bg-default-200" />
+                          {t('legendManual')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </NextLink>
                 {canEdit && (
                   <div className="absolute bottom-3 right-3 flex gap-0.5">

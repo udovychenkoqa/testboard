@@ -611,7 +611,14 @@
       "deleteTitle": "Видалити «{name}»?",
       "deleteWarning": "Проєкт буде видалено назавжди разом з усіма наборами, {count, plural, one {# кейсом} few {# кейсами} many {# кейсами} other {# кейса}} і всіма прогонами. Скасувати це неможливо.",
       "deleteConfirmLabel": "Введіть {key} для підтвердження",
-      "deleted": "Проєкт «{name}» видалено"
+      "deleted": "Проєкт «{name}» видалено",
+      "overall": "Загалом",
+      "smoke": "Смоук",
+      "noSmoke": "Смоук: немає кейсів з тегом smoke",
+      "legendAutomated": "автоматизовано",
+      "legendPlanned": "в плані",
+      "legendManual": "вручну",
+      "barTitle": "Автоматизовано {automated}, в плані {planned} з {total}"
     },
     "cases": {
       "back": "Усі проєкти",

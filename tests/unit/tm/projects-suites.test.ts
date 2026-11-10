@@ -68,6 +68,28 @@ describe('projects', () => {
     expect(listProjects(db)).toEqual([expect.objectContaining({ key: 'hw', caseCount: 2, automatedCount: 1 })]);
   });
 
+  it('splits automation into automated / to automate, overall and for smoke-tagged cases', () => {
+    const p = createProject(db, { key: 'hw', name: 'A', code: 'HW' });
+    const { id: suiteId } = createSuite(db, { projectId: p.id, name: 'Root' });
+    const add = (automation: 'manual' | 'automated' | 'to_automate', tags: string[] = []) =>
+      createCase(db, p.id, { suiteId, title: `${automation} ${tags}`, automation, tags }, 'qa');
+
+    add('automated', ['smoke']);
+    add('automated', ['@Smoke', 'login']);
+    add('to_automate', ['smoke']);
+    add('manual', ['smoke']);
+    add('automated');
+    add('to_automate', ['smoke-ish']);
+    add('manual');
+
+    expect(listProjects(db)[0]).toMatchObject({
+      caseCount: 7,
+      automatedCount: 3,
+      toAutomateCount: 2,
+      smoke: { caseCount: 4, automatedCount: 2, toAutomateCount: 1 },
+    });
+  });
+
   it('renames, and refuses to delete a project that has cases', () => {
     const p = createProject(db, { key: 'hw', name: 'A', code: 'HW' });
 
