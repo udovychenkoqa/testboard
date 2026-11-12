@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { Select } from '@/app/components/ui/select';
 import { withBase } from '@/app/lib/url';
 import { BlockSkeleton } from '@/app/components/ui/skeletons';
+import { ASSIGNABLE_ROLES, DEFAULT_ROLE, ROLES } from '@/app/lib/access';
 
 interface UserRow {
   email: string;
@@ -17,8 +18,12 @@ interface UserRow {
 
 const TEMPLATE = '26px 1fr 150px 130px 30px';
 
-// Admin UI for email → role assignment (persisted to config.json via
-// /api/access). Roles are labels; only "admin" is privileged (see access.ts).
+const ROLE_ORDER = [ROLES.administrator, ROLES.member] as const;
+
+type RoleKey = (typeof ROLE_ORDER)[number];
+
+// Admin UI for email → role assignment (persisted to config.json via /api/access), with a Qase-style
+// table of what each role is. Administrators from the server config are shown locked (see access.ts).
 // Every row change saves immediately — POST /api/access is already atomic
 // over the full user map, so there's no partial-save risk.
 interface AccessCardProps {
@@ -31,7 +36,7 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
   const t = useTranslations('settings.access');
   const tp = useTranslations('settings.page');
   const [rows, setRows] = useState<UserRow[]>([]);
-  const [roleOptions, setRoleOptions] = useState<string[]>(['admin', 'viewer']);
+  const [roleOptions, setRoleOptions] = useState<string[]>([...ASSIGNABLE_ROLES]);
   const [bootstrapAdmins, setBootstrapAdmins] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -122,12 +127,18 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
     persist(next);
   };
 
+  // Known role names get their label; anything else (never sent by the API) shows as is.
+  const roleLabel = (role: string) => (ROLE_ORDER.includes(role as RoleKey) ? t(`roleName.${role as RoleKey}`) : role);
+  // Administrators from the server config count too; they are listed locked below.
+  const usersIn = (role: RoleKey) =>
+    rows.filter((row) => row.role === role).length + (role === ROLES.administrator ? bootstrapAdmins.length : 0);
+
   const commitNewEmail = () => {
     const email = addingEmail?.trim().toLowerCase();
 
     setAddingEmail(null);
     if (!email) return;
-    const next = [...rows, { email, role: 'viewer' }];
+    const next = [...rows, { email, role: DEFAULT_ROLE }];
 
     setRows(next);
     persist(next);
@@ -155,6 +166,31 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
         </button>
       </div>
 
+      <div className="border-b border-divider">
+        <div className="grid h-8 grid-cols-[1fr_auto] items-center gap-3 px-4 text-[10.5px] font-medium uppercase tracking-wide text-default-400">
+          <span>{t('roleColumn')}</span>
+          <span>{t('usersColumn')}</span>
+        </div>
+        {ROLE_ORDER.map((role) => (
+          <div key={role} className="grid grid-cols-[1fr_auto] items-start gap-3 border-t border-divider px-4 py-2.5">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[12.5px] font-semibold">{t(`roleName.${role}`)}</span>
+                {role === DEFAULT_ROLE && (
+                  <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10.5px] font-medium text-primary">
+                    {t('defaultBadge')}
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-[11.5px] leading-snug text-default-500">{t(`roleDesc.${role}`)}</p>
+            </div>
+            <span className="whitespace-nowrap pt-0.5 font-mono text-[11.5px] text-default-500">
+              {t('usersCount', { count: usersIn(role) })}
+            </span>
+          </div>
+        ))}
+      </div>
+
       <div>
         {bootstrapAdmins.map((email) => (
           <div
@@ -164,9 +200,12 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
           >
             <Avatar className="h-[22px] w-[22px] text-[10px]" name={email} />
             <span className="truncate font-mono text-[12px]">{email}</span>
-            <span className="inline-flex h-[19px] w-fit items-center gap-1 rounded-md bg-warning/15 px-1.5 text-[10.5px] font-medium text-warning">
+            <span
+              className="inline-flex h-[19px] w-fit items-center gap-1 rounded-md bg-warning/15 px-1.5 text-[10.5px] font-medium text-warning"
+              title={t('lockedHint')}
+            >
               <Lock size={10} />
-              admin · env
+              {t('roleName.administrator')}
             </span>
             <span />
             <span />
@@ -189,7 +228,7 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
               onChange={(e) => setAddingEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && commitNewEmail()}
             />
-            <span className="text-[11.5px] text-default-400">viewer</span>
+            <span className="text-[11.5px] text-default-400">{roleLabel(DEFAULT_ROLE)}</span>
             <span />
           </div>
         )}
@@ -218,7 +257,7 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
                 onChange={(e) => changeRole(index, e.target.value)}
               >
                 {roleOptions.map((role) => (
-                  <SelectItem key={role}>{role}</SelectItem>
+                  <SelectItem key={role}>{roleLabel(role)}</SelectItem>
                 ))}
               </Select>
               <button

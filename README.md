@@ -16,7 +16,7 @@ access model still follow upstream.
   notifications.
 - **Autotests.** Start, cancel and rerun GitLab pipelines from **Test Runs → Automated**.
 - **Test management.** Projects, suites, cases with steps, and manual runs with results.
-- **Access.** Sign in with Google (allowed domains, roles viewer / tester / admin) or with the API token.
+- **Access.** Sign in with Google (allowed domains, roles Member / Administrator) or with the API token.
   The CI uses the same token in the `Authorization` header.
 
 ## Stack

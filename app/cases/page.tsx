@@ -18,13 +18,17 @@ import { EditProjectModal } from '@/app/components/tm/edit-project-modal';
 import { NewProjectModal } from '@/app/components/tm/new-project-modal';
 import { ProjectAvatar } from '@/app/components/tm/project-avatar';
 import useQuery from '@/app/hooks/useQuery';
+import { useCan } from '@/app/hooks/useCan';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
+import { CAPABILITIES } from '@/app/lib/access';
 import { useTmProject } from '@/app/hooks/useTmProject';
 
 export default function TestCasesProjectsPage() {
   const t = useTranslations('tm.projects');
   const router = useRouter();
   const canEdit = useCanManageCases();
+  // Creating and deleting a project is for administrators; members still rename it and set its logo.
+  const canManageProjects = useCan(CAPABILITIES.manageProjects);
   const [, setProject] = useTmProject();
   const [isOpen, setIsOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ProjectSummary | null>(null);
@@ -42,7 +46,7 @@ export default function TestCasesProjectsPage() {
     <div className="flex flex-col rr-enter">
       <PageHeader
         actions={
-          canEdit && (
+          canManageProjects && (
             <Button
               className="h-[30px] px-2.5 text-xs font-semibold"
               color="primary"
@@ -63,7 +67,7 @@ export default function TestCasesProjectsPage() {
         ) : !projects?.length ? (
           <EmptyState
             action={
-              canEdit && (
+              canManageProjects && (
                 <Button color="primary" size="sm" onPress={() => setIsOpen(true)}>
                   {t('newProject')}
                 </Button>
@@ -132,17 +136,19 @@ export default function TestCasesProjectsPage() {
                     >
                       <Pencil size={14} />
                     </Button>
-                    <Button
-                      isIconOnly
-                      aria-label={t('delete')}
-                      className="text-default-400 hover:text-danger"
-                      size="sm"
-                      title={t('delete')}
-                      variant="light"
-                      onPress={() => setToDelete(p)}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
+                    {canManageProjects && (
+                      <Button
+                        isIconOnly
+                        aria-label={t('delete')}
+                        className="text-default-400 hover:text-danger"
+                        size="sm"
+                        title={t('delete')}
+                        variant="light"
+                        onPress={() => setToDelete(p)}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

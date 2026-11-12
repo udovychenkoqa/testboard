@@ -393,9 +393,22 @@
       "user": "User",
       "role": "Role",
       "remove": "Remove",
-      "nobody": "Nobody added yet — everyone from the domain signs in as viewer.",
+      "nobody": "Nobody added yet — everyone from the domain signs in as Member.",
       "readFailed": "Couldn't read access list: {error}",
-      "footer": "Only <b>admin</b> has full access (Settings, deletion, triggering runs); other roles are view-only. New users from an allowed domain get <b>viewer</b> by default."
+      "footer": "New users from an allowed domain get the <b>Member</b> role by default. Administrators from the server configuration are marked with a lock: their role can't be removed here.",
+      "roleColumn": "Role",
+      "usersColumn": "Users",
+      "defaultBadge": "default",
+      "usersCount": "{count, plural, one {# user} other {# users}}",
+      "roleName": {
+        "administrator": "Administrator",
+        "member": "Member"
+      },
+      "roleDesc": {
+        "administrator": "Full access: settings, user roles, creating and deleting projects, deleting reports.",
+        "member": "The daily work: cases, suites, runs, starting autotests, generating reports. No deleting reports or projects, no settings."
+      },
+      "lockedHint": "Set in the server configuration"
     }
   },
   "status": {
@@ -651,7 +664,7 @@
       "caseDeleteConfirm": "Delete the selected cases? Past runs keep their results.",
       "caseCreated": "Case {label} created",
       "moved": "Cases moved",
-      "readOnly": "You can view test cases; editing needs the tester or admin role.",
+      "readOnly": "You can only view test cases: editing needs a Member or Administrator sign-in.",
       "dragCount": "{count, plural, one {# case} other {# cases}}",
       "autoResult": "Autotest:",
       "openReport": "Open report",

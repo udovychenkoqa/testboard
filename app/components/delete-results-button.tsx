@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
 import useMutation from '@/app/hooks/useMutation';
+import { useCan } from '@/app/hooks/useCan';
+import { CAPABILITIES } from '@/app/lib/access';
 import { invalidateCache } from '@/app/lib/query-cache';
 import { DeleteIcon } from '@/app/components/icons';
 
@@ -80,6 +82,9 @@ interface DeleteResultsButtonProps {
 export default function DeleteResultsButton({ resultIds, onDeletedResult, label }: Readonly<DeleteResultsButtonProps>) {
   const t = useTranslations('deleteResults');
   const { open, isPending, isDisabled, modal } = useDeleteResults({ resultIds, onDeletedResult });
+  const canDelete = useCan(CAPABILITIES.deleteReports);
+
+  if (!canDelete) return null;
 
   return (
     <>

@@ -11,6 +11,7 @@ import { env } from '@/app/config/env';
 import { cronService } from '@/app/lib/service/cron';
 import { auth } from '@/app/auth';
 import { AUTH_ENABLED, GOOGLE_ENABLED } from '@/app/lib/authFlags';
+import { isAdminRole } from '@/app/lib/access';
 
 export const dynamic = 'force-dynamic'; // defaults to auto
 
@@ -191,7 +192,7 @@ export async function GET() {
   // The full config carries secrets (notification webhook URLs, AI settings) —
   // return it only to admins. Non-admins/viewers get just the public flags, so
   // this public route never leaks Slack webhooks to a read-only user.
-  if (role !== 'admin') {
+  if (!isAdminRole(role)) {
     return Response.json(publicInfo, { status: 200 });
   }
 

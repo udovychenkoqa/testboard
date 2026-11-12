@@ -13,6 +13,8 @@ import useQuery from '@/app/hooks/useQuery';
 import FormattedDate from '@/app/components/date-format';
 import { ReadResultsOutput, type Result } from '@/app/lib/storage';
 import { useDeleteResults } from '@/app/components/delete-results-button';
+import { useCan } from '@/app/hooks/useCan';
+import { CAPABILITIES } from '@/app/lib/access';
 import { DataGrid, GridRow, type GridColumn } from '@/app/components/ui/data-grid';
 import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { EmptyState } from '@/app/components/ui/empty-state';
@@ -50,6 +52,7 @@ interface ResultRowProps {
 
 function ResultRow({ item, isSelected, onToggle, onDeleted }: Readonly<ResultRowProps>) {
   const t = useTranslations('results');
+  const canDelete = useCan(CAPABILITIES.deleteReports);
   const {
     open: openDelete,
     isPending: isDeleting,
@@ -75,15 +78,19 @@ function ResultRow({ item, isSelected, onToggle, onDeleted }: Readonly<ResultRow
         ))}
       </div>
       <div className="font-mono text-[11.5px] text-default-500 tabular-nums text-right pr-3">{item.size}</div>
-      <button
-        aria-label={t('deleteOne')}
-        className="flex h-[26px] w-[26px] items-center justify-center rounded-lg text-default-400 transition-colors hover:bg-danger-50 hover:text-danger"
-        disabled={isDeleting}
-        type="button"
-        onClick={openDelete}
-      >
-        <DeleteIcon size={16} />
-      </button>
+      {canDelete ? (
+        <button
+          aria-label={t('deleteOne')}
+          className="flex h-[26px] w-[26px] items-center justify-center rounded-lg text-default-400 transition-colors hover:bg-danger-50 hover:text-danger"
+          disabled={isDeleting}
+          type="button"
+          onClick={openDelete}
+        >
+          <DeleteIcon size={16} />
+        </button>
+      ) : (
+        <span />
+      )}
       {deleteModal}
     </GridRow>
   );

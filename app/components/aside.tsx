@@ -9,6 +9,7 @@ import { FileText, FileBarChart, TrendingUp, CirclePlay, ListChecks, Settings, t
 import { useAuthConfig } from '../hooks/useAuthConfig';
 
 import { Logo } from '@/app/components/logo';
+import { isAdminRole } from '@/app/lib/access';
 import { UserMenu } from '@/app/components/user-menu';
 import useQuery from '@/app/hooks/useQuery';
 
@@ -44,7 +45,7 @@ export const Aside: React.FC = () => {
   const session = useSession();
   const { authRequired } = useAuthConfig();
   const isAuthenticated = authRequired === false || session.status === 'authenticated';
-  const isAdmin = authRequired === false || session.data?.user?.role === 'admin';
+  const isAdmin = authRequired === false || isAdminRole(session.data?.user?.role);
 
   const { data: serverInfo } = useQuery<ServerInfo>('/api/info', { enabled: isAuthenticated });
   const { data: projects } = useQuery<string[]>('/api/report/projects', { enabled: isAuthenticated });

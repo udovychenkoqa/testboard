@@ -99,14 +99,16 @@ Key decisions:
 - With neither configured the app is fully open (`AUTH_ENABLED=false`): "open mode" = implicit admin.
 - **Roles** (`app/lib/access.ts`):
 
-  | Role                           | Can                                                     |
-  | ------------------------------ | ------------------------------------------------------- |
-  | `admin`                        | everything, including Settings and access management    |
-  | `tester`                       | everything except Settings, plus test-management writes |
-  | `viewer` (and any other label) | everything except Settings and test-management writes   |
+  | Role            | Can                                                                                        |
+  | --------------- | ------------------------------------------------------------------------------------------ |
+  | `administrator` | everything: Settings, user roles, creating/deleting TM projects, deleting reports/results |
+  | `member`        | the daily work: view, test-management writes, autotest pipelines, upload/generate reports  |
 
-- Where a role comes from: `AUTH_ADMIN_EMAILS` (env), an assignment in Settings (`config.access.users`,
-  `roleStore.ts`), otherwise `viewer` for an allowed domain.
+  Names stored before the rename still work (`normalizeRole`): `admin` → administrator; `tester`, `viewer`
+  and free-form labels → member.
+
+- Where a role comes from: `AUTH_ADMIN_EMAILS` (env; a permanent administrator the UI can't demote), an
+  assignment in Settings (`config.access.users`, `roleStore.ts`), otherwise `member` for an allowed domain.
 - **Enforcement** happens in `middleware.ts` for every `/api/*` via `can(role, requiredCapability(...))`.
   A request with no session but a matching `Authorization: <API_TOKEN>` header (CI, scripts) gets
   `apiTokenCan()`: uploads, report generation, reads, test management and autotest pipelines, but not

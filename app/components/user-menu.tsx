@@ -10,6 +10,7 @@ import { ChevronsUpDown, Settings, KeyRound, LogOut, Moon, Languages } from 'luc
 import { useTranslations } from 'next-intl';
 
 import { useAuthConfig } from '@/app/hooks/useAuthConfig';
+import { isAdminRole } from '@/app/lib/access';
 import { LanguageSwitch } from '@/app/components/language-switch';
 
 // jwtToken shape leaks how the session was established (see auth.config.ts):
@@ -48,7 +49,7 @@ export const UserMenu: React.FC = () => {
   // API-token / no-auth mode has no identity — render nothing.
   if (!displayName) return null;
 
-  const isAdmin = authRequired === false || role === 'admin';
+  const isAdmin = authRequired === false || isAdminRole(role);
   const provider = providerLabel(session?.user?.jwtToken);
   const isDark = !isSSR && themeName?.replace('-mode', '') !== 'light';
 

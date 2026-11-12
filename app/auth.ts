@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 
 import { authConfig } from './auth.config';
 import { ROLE_POLICY } from './lib/authFlags';
-import { resolveRole, type Role } from './lib/access';
+import { normalizeRole, resolveRole, ROLES, type Role } from './lib/access';
 import { needsRoleRecheck } from './lib/roleRecheck';
 
 // The full (Node-runtime) auth instance used by route handlers and server
@@ -10,14 +10,14 @@ import { needsRoleRecheck } from './lib/roleRecheck';
 // reads config.json (admin-assigned roles) — via a DYNAMIC import of the
 // Node-only roleStore so it never lands in the edge middleware bundle. The
 // role is baked into the JWT at sign-in; middleware only reads it back.
-// Bootstrap admins (AUTH_ADMIN_EMAILS) are ALWAYS admin and cannot be demoted through the UI — this
-// prevents an admin locking themselves out. Otherwise the admin-assigned role wins, then the domain default.
+// AUTH_ADMIN_EMAILS are ALWAYS administrators and cannot be demoted through the UI — this prevents an
+// admin locking themselves out. Otherwise the assigned role wins, then the domain default (member).
 const resolveGoogleRole = async (email: string | null | undefined): Promise<Role | undefined> => {
   const { getAssignedRole } = await import('./lib/roleStore');
   const assigned = await getAssignedRole(email);
-  const envRole = resolveRole(email, ROLE_POLICY); // 'admin' | 'viewer' | null
+  const envRole = resolveRole(email, ROLE_POLICY); // administrator | member | null
 
-  return envRole === 'admin' ? 'admin' : (assigned ?? envRole ?? undefined);
+  return envRole === ROLES.administrator ? envRole : (normalizeRole(assigned) ?? envRole ?? undefined);
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

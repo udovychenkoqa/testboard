@@ -27,6 +27,8 @@ import { dayKey, formatDayHeading } from '@/i18n/dates';
 import { passRateColor, STATUS_COLORS } from '@/app/lib/tailwind';
 import useQuery from '@/app/hooks/useQuery';
 import { useDeleteReport } from '@/app/components/delete-report-button';
+import { useCan } from '@/app/hooks/useCan';
+import { CAPABILITIES } from '@/app/lib/access';
 import FormattedDate, { useDateLabels } from '@/app/components/date-format';
 import { DataGrid, GridRow, type GridColumn } from '@/app/components/ui/data-grid';
 import { StatBar } from '@/app/components/ui/stat-bar';
@@ -136,6 +138,7 @@ interface ReportRowProps {
 function ReportRow({ item, isSelected, onToggle, onDeleted, template, showProject }: Readonly<ReportRowProps>) {
   const t = useTranslations('reports');
   const router = useRouter();
+  const canDelete = useCan(CAPABILITIES.deleteReports);
   const {
     open: openDelete,
     isPending: isDeleting,
@@ -258,9 +261,11 @@ function ReportRow({ item, isSelected, onToggle, onDeleted, template, showProjec
             <DropdownItem key="evidence" as="a" href={withBase(`/api/download/${item.reportID}?format=evidence`)}>
               {t('actions.evidencePdf')}
             </DropdownItem>
-            <DropdownItem key="delete" className="text-danger" color="danger" onPress={openDelete}>
-              {t('actions.delete')}
-            </DropdownItem>
+            {canDelete ? (
+              <DropdownItem key="delete" className="text-danger" color="danger" onPress={openDelete}>
+                {t('actions.delete')}
+              </DropdownItem>
+            ) : null}
           </DropdownMenu>
         </Dropdown>
       </div>

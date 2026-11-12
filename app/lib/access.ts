@@ -1,57 +1,69 @@
-// Role-based access model — a slimmed port of the upstream
-// (CyborgTests/playwright-reports-server) `packages/shared/src/access.ts`.
-// Framework-agnostic and env-free on purpose: usable from the edge middleware,
-// server routes, and client components alike. Three roles (admin, tester,
-// viewer), no invites/audit — roles come from env (see authFlags.ts) and the
-// admin-managed map in config.json (see roleStore.ts).
+// Role-based access model. Framework-agnostic and env-free on purpose: usable from the edge middleware,
+// server routes and client components alike. Two roles, named as in Qase:
+//   administrator  everything; assigned in Settings, or fixed by AUTH_ADMIN_EMAILS (can't be changed in the UI)
+//   member         the daily work (cases, runs, autotests, reports) without deletes, projects or settings;
+//                  the default for anyone from an allowed domain
+// Roles come from env (see authFlags.ts) and the admin-managed map in config.json (see roleStore.ts).
 
 export const ROLES = {
-  admin: 'admin',
-  // Writes test cases and works through manual runs; no Settings access.
-  tester: 'tester',
-  viewer: 'viewer',
+  administrator: 'administrator',
+  member: 'member',
 } as const;
 
-// A role is a free-form label (admin can define e.g. "developer", "qa
-// engineer"). 'admin' grants everything and 'tester' adds test-management
-// writes; every other label is an organizational tag with viewer access. See can().
 export type Role = string;
 
-// Roles offered in the admin UI dropdown. More labels could be added here, but
-// they'd behave as viewer: only 'admin' and 'tester' carry extra rights.
-export const ASSIGNABLE_ROLES = ['admin', 'tester', 'viewer'] as const;
+// Roles an administrator can hand out.
+export const ASSIGNABLE_ROLES = [ROLES.administrator, ROLES.member] as const;
 
-// The role a signed-in but unassigned allowed-domain user gets by default.
-export const DEFAULT_ROLE: Role = ROLES.viewer;
+// The role a signed-in but unassigned allowed-domain user gets.
+export const DEFAULT_ROLE: Role = ROLES.member;
+
+// Stored maps and live sessions may still carry the names from before the rename (admin / tester / viewer),
+// and older configs allowed free-form labels. All of them keep working: admin was full access, the rest
+// become member.
+export const normalizeRole = (role: Role | null | undefined): Role | null => {
+  if (!role) return null;
+  // 'owner' existed briefly as a separate name for the AUTH_ADMIN_EMAILS administrators.
+  if (role === ROLES.administrator || role === 'admin' || role === 'owner') return ROLES.administrator;
+
+  return ROLES.member;
+};
+
+export const isAdminRole = (role: Role | null | undefined): boolean => normalizeRole(role) === ROLES.administrator;
 
 // Capabilities gate groups of routes/actions. Keep the set small; add one only
 // when a real route needs a distinct rule (not "just in case").
 export const CAPABILITIES = {
-  // Read reports/results and anything a logged-in human should see.
+  // Read reports, results, trends, cases and runs.
   view: 'view',
-  // Trigger autotest runs — allowed for viewers too (not just admins).
+  // Start, cancel and rerun autotest pipelines.
   runTests: 'run:tests',
-  // Mutating report/result actions: delete, (re)generate.
+  // Add to reports: upload results, generate a report, regenerate the AI summary.
   manageReports: 'manage:reports',
-  // Server/notification/AI settings (POST /api/config, /api/access).
-  manageSettings: 'manage:settings',
-  // Test management writes: projects, suites, cases, runs and their results.
+  // Delete reports and results (can't be undone).
+  deleteReports: 'delete:reports',
+  // Test management writes: suites, cases, runs and their results, a project's name and logo.
   manageCases: 'manage:cases',
+  // Create and delete test-management projects.
+  manageProjects: 'manage:projects',
+  // Server/notification/AI settings and user roles (/api/config, /api/access).
+  manageSettings: 'manage:settings',
 } as const;
 
 export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
 
-// Roles are labels: 'admin' can do everything, any other non-null label is
-// read-only. There's intentionally no per-label matrix — the product decision
-// is that only admin is privileged (labels are organizational).
-// Only Settings / access management is admin-exclusive. A signed-in viewer can
-// do everything else: view, run tests, delete, regenerate AI.
-export const can = (role: Role | null | undefined, capability: Capability): boolean => {
-  if (role === ROLES.admin) return true;
-  // Unlike the rest, test management is closed to viewers and free-form labels.
-  if (capability === CAPABILITIES.manageCases) return role === ROLES.tester;
+const ADMIN_ONLY: ReadonlySet<Capability> = new Set([
+  CAPABILITIES.deleteReports,
+  CAPABILITIES.manageProjects,
+  CAPABILITIES.manageSettings,
+]);
 
-  return !!role && capability !== CAPABILITIES.manageSettings;
+export const can = (role: Role | null | undefined, capability: Capability): boolean => {
+  const normalized = normalizeRole(role);
+
+  if (!normalized) return false;
+
+  return isAdminRole(normalized) || !ADMIN_ONLY.has(capability);
 };
 
 // The API token (Authorization header) lives in CI variables and on QA machines, so it gets what CI and
@@ -81,12 +93,12 @@ export const resolveRole = (email: string | undefined | null, policy: RolePolicy
   if (!email) return null;
   const normalized = email.trim().toLowerCase();
 
-  if (policy.adminEmails.includes(normalized)) return ROLES.admin;
+  if (policy.adminEmails.includes(normalized)) return ROLES.administrator;
 
   const domain = normalized.split('@')[1] ?? '';
 
   if (policy.allowedDomains.length > 0 && domainAllowed(domain, policy.allowedDomains)) {
-    return ROLES.viewer;
+    return DEFAULT_ROLE;
   }
 
   return null;
@@ -94,38 +106,48 @@ export const resolveRole = (email: string | undefined | null, policy: RolePolicy
 
 // --- Mapping an /api request to the capability it requires -----------------
 
-interface AdminRoute {
+interface GatedRoute {
   method: string;
   // Matched against the pathname; endsWith so a configurable API base path
   // prefix (API_BASE_PATH) doesn't break the match.
   suffix: string;
+  capability: Capability;
 }
 
-// Everything not listed here requires only `view` (any authenticated user).
-// These are the mutating/privileged endpoints (see app/api/*/route.ts).
-const ADMIN_ROUTES: AdminRoute[] = [
-  { method: 'GET', suffix: '/api/access' }, // manage:settings (user/role admin)
-  { method: 'POST', suffix: '/api/access' },
-  { method: 'POST', suffix: '/api/config' }, // manage:settings
-  { method: 'PATCH', suffix: '/api/config' }, // the real settings write (POST was never a handler)
-  { method: 'POST', suffix: '/api/report/delete' },
-  { method: 'POST', suffix: '/api/result/delete' },
-  { method: 'DELETE', suffix: '/api/report/delete' },
-  { method: 'DELETE', suffix: '/api/result/delete' },
-  { method: 'POST', suffix: '/api/report/generate' },
-  { method: 'POST', suffix: '/api/autotests/trigger' }, // run:tests (viewers too)
-  { method: 'POST', suffix: '/api/autotests/cancel' }, // run:tests
-  { method: 'POST', suffix: '/api/autotests/rerun' }, // run:tests
-  { method: 'POST', suffix: '/ai-summary' }, // POST /api/report/{id}/ai-summary (Regenerate)
+// Everything not listed here (and outside /api/tm) requires only `view`: any signed-in user.
+const GATED_ROUTES: GatedRoute[] = [
+  { method: 'GET', suffix: '/api/access', capability: CAPABILITIES.manageSettings },
+  { method: 'POST', suffix: '/api/access', capability: CAPABILITIES.manageSettings },
+  { method: 'POST', suffix: '/api/config', capability: CAPABILITIES.manageSettings },
+  // The real settings write (POST was never a handler).
+  { method: 'PATCH', suffix: '/api/config', capability: CAPABILITIES.manageSettings },
+  { method: 'POST', suffix: '/api/report/delete', capability: CAPABILITIES.deleteReports },
+  { method: 'POST', suffix: '/api/result/delete', capability: CAPABILITIES.deleteReports },
+  { method: 'DELETE', suffix: '/api/report/delete', capability: CAPABILITIES.deleteReports },
+  { method: 'DELETE', suffix: '/api/result/delete', capability: CAPABILITIES.deleteReports },
+  { method: 'PUT', suffix: '/api/result/upload', capability: CAPABILITIES.manageReports },
+  { method: 'POST', suffix: '/api/report/generate', capability: CAPABILITIES.manageReports },
+  // POST /api/report/{id}/ai-summary (Regenerate)
+  { method: 'POST', suffix: '/ai-summary', capability: CAPABILITIES.manageReports },
+  { method: 'POST', suffix: '/api/autotests/trigger', capability: CAPABILITIES.runTests },
+  { method: 'POST', suffix: '/api/autotests/cancel', capability: CAPABILITIES.runTests },
+  { method: 'POST', suffix: '/api/autotests/rerun', capability: CAPABILITIES.runTests },
 ];
 
+// POST …/api/tm/projects creates a project, DELETE …/api/tm/projects/{key} removes one with everything in it.
+const isProjectLifecycle = (pathname: string, method: string): boolean =>
+  (method === 'POST' && pathname.endsWith('/api/tm/projects')) ||
+  (method === 'DELETE' && /\/api\/tm\/projects\/[^/]+$/.test(pathname));
+
 export const requiredCapability = (pathname: string, method: string): Capability => {
-  if (pathname.includes('/api/tm/')) return method === 'GET' ? CAPABILITIES.view : CAPABILITIES.manageCases;
-  const match = ADMIN_ROUTES.find((route) => route.method === method && pathname.endsWith(route.suffix));
+  if (pathname.includes('/api/tm/')) {
+    if (method === 'GET') return CAPABILITIES.view;
 
-  if (!match) return CAPABILITIES.view;
-  if (match.suffix.startsWith('/api/autotests/')) return CAPABILITIES.runTests;
-  if (match.suffix === '/api/config' || match.suffix === '/api/access') return CAPABILITIES.manageSettings;
+    return isProjectLifecycle(pathname, method) ? CAPABILITIES.manageProjects : CAPABILITIES.manageCases;
+  }
 
-  return CAPABILITIES.manageReports;
+  return (
+    GATED_ROUTES.find((route) => route.method === method && pathname.endsWith(route.suffix))?.capability ??
+    CAPABILITIES.view
+  );
 };

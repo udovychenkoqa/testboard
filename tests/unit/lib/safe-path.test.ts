@@ -24,9 +24,9 @@ describe('requiredCapability for settings and deletes', () => {
     expect(requiredCapability('/api/config', 'PATCH')).toBe(CAPABILITIES.manageSettings);
   });
 
-  it('keeps DELETE routes behind manage:reports', () => {
-    expect(requiredCapability('/api/result/delete', 'DELETE')).toBe(CAPABILITIES.manageReports);
-    expect(requiredCapability('/api/report/delete', 'DELETE')).toBe(CAPABILITIES.manageReports);
+  it('keeps DELETE routes behind delete:reports', () => {
+    expect(requiredCapability('/api/result/delete', 'DELETE')).toBe(CAPABILITIES.deleteReports);
+    expect(requiredCapability('/api/report/delete', 'DELETE')).toBe(CAPABILITIES.deleteReports);
   });
 });
 

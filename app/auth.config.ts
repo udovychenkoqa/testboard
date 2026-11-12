@@ -54,7 +54,7 @@ const buildProviders = () => {
           return {
             apiToken: credentials.apiToken as string,
             jwtToken: 'api-token',
-            role: ROLES.admin,
+            role: ROLES.administrator,
           };
         },
       }),
@@ -70,7 +70,7 @@ const buildProviders = () => {
         name: 'No Auth',
         credentials: {},
         async authorize(): Promise<User | null> {
-          return { apiToken: 'open', jwtToken: 'open', role: ROLES.admin };
+          return { apiToken: 'open', jwtToken: 'open', role: ROLES.administrator };
         },
       }),
     );
