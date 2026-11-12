@@ -9,6 +9,8 @@ import { useTranslations } from 'next-intl';
 import { Select } from '@/app/components/ui/select';
 import { withBase } from '@/app/lib/url';
 import { BlockSkeleton } from '@/app/components/ui/skeletons';
+import { PersonAvatar } from '@/app/components/person-avatar';
+import { usePeople } from '@/app/hooks/usePeople';
 import { ASSIGNABLE_ROLES, DEFAULT_ROLE, ROLES } from '@/app/lib/access';
 
 interface UserRow {
@@ -21,6 +23,14 @@ const TEMPLATE = '26px 1fr 150px 130px 30px';
 const ROLE_ORDER = [ROLES.administrator, ROLES.member] as const;
 
 type RoleKey = (typeof ROLE_ORDER)[number];
+
+// The email, with the name from the person's profile in front once they have filled it in.
+const PersonLine: React.FC<{ email: string; name: string }> = ({ email, name }) => (
+  <span className="flex min-w-0 items-baseline gap-2">
+    {name !== email && <span className="truncate text-[12.5px] font-medium">{name}</span>}
+    <span className="truncate font-mono text-[12px] text-default-500">{email}</span>
+  </span>
+);
 
 // Admin UI for email → role assignment (persisted to config.json via /api/access), with a Qase-style
 // table of what each role is. Administrators from the server config are shown locked (see access.ts).
@@ -35,6 +45,7 @@ interface AccessCardProps {
 export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<AccessCardProps>) {
   const t = useTranslations('settings.access');
   const tp = useTranslations('settings.page');
+  const { nameOf, profileOf } = usePeople();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [roleOptions, setRoleOptions] = useState<string[]>([...ASSIGNABLE_ROLES]);
   const [bootstrapAdmins, setBootstrapAdmins] = useState<string[]>([]);
@@ -198,8 +209,13 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
             className="grid h-11 items-center gap-2 border-b border-divider px-3"
             style={{ gridTemplateColumns: TEMPLATE }}
           >
-            <Avatar className="h-[22px] w-[22px] text-[10px]" name={email} />
-            <span className="truncate font-mono text-[12px]">{email}</span>
+            <PersonAvatar
+              avatarUpdatedAt={profileOf(email)?.avatarUpdatedAt}
+              className="h-[22px] w-[22px] text-[10px]"
+              email={email}
+              name={nameOf(email)}
+            />
+            <PersonLine email={email} name={nameOf(email)} />
             <span
               className="inline-flex h-[19px] w-fit items-center gap-1 rounded-md bg-warning/15 px-1.5 text-[10.5px] font-medium text-warning"
               title={t('lockedHint')}
@@ -246,8 +262,13 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
               className="grid h-11 items-center gap-2 border-b border-divider px-3 last:border-0"
               style={{ gridTemplateColumns: TEMPLATE }}
             >
-              <Avatar className="h-[22px] w-[22px] text-[10px]" name={row.email} />
-              <span className="truncate font-mono text-[12px]">{row.email}</span>
+              <PersonAvatar
+                avatarUpdatedAt={profileOf(row.email)?.avatarUpdatedAt}
+                className="h-[22px] w-[22px] text-[10px]"
+                email={row.email}
+                name={nameOf(row.email)}
+              />
+              <PersonLine email={row.email} name={nameOf(row.email)} />
               <Select
                 aria-label={t('role')}
                 classNames={{ trigger: 'h-7 min-h-7' }}

@@ -28,6 +28,7 @@ import FormattedDate from '@/app/components/date-format';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { AUTOMATION, CASE_STATUSES, PRIORITIES } from '@/app/lib/tm/constants';
+import { usePeople } from '@/app/hooks/usePeople';
 
 // GET /api/tm/cases/:id adds the latest automated result.
 type CaseDetail = BaseCaseDetail & { autoResult?: AutoResultView | null };
@@ -163,6 +164,7 @@ const StepsEditor: React.FC<{ steps: StepInput[]; readOnly: boolean; onChange: (
 
 export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, canEdit, onClose }) => {
   const t = useTranslations('tm');
+  const { nameOf } = usePeople();
   const caseId = mode?.kind === 'edit' ? mode.caseId : null;
   const { data: current } = useQuery<CaseDetail>(`/api/tm/cases/${caseId}`, {
     enabled: caseId !== null,
@@ -351,7 +353,7 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
               )}
               {current && mode?.kind === 'edit' && (
                 <p className="text-[11.5px] text-default-400">
-                  {t('cases.createdBy', { who: current.createdBy })} ·{' '}
+                  {t('cases.createdBy', { who: nameOf(current.createdBy) })} ·{' '}
                   <FormattedDate relativeDay date={new Date(current.updatedAt)} /> · {current.updatedBy}
                 </p>
               )}

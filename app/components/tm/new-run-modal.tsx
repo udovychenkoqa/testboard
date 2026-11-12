@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Select } from '@/app/components/ui/select';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
+import { usePeople } from '@/app/hooks/usePeople';
 
 type SourceType = RunSource['type'];
 
@@ -27,6 +28,7 @@ const NOBODY = '__nobody';
 
 export const NewRunModal: React.FC<NewRunModalProps> = ({ projectKey, isOpen, presetCaseIds, onClose, onCreated }) => {
   const t = useTranslations('tm');
+  const { nameOf } = usePeople();
   const { data: suites = [] } = useQuery<SuiteNode[]>(`/api/tm/projects/${projectKey}/suites`, {
     enabled: isOpen,
     dependencies: [projectKey, isOpen],
@@ -138,7 +140,7 @@ export const NewRunModal: React.FC<NewRunModalProps> = ({ projectKey, isOpen, pr
           >
             {[
               <SelectItem key={NOBODY}>{t('runs.nobody')}</SelectItem>,
-              ...assignees.map((email) => <SelectItem key={email}>{email}</SelectItem>),
+              ...assignees.map((email) => <SelectItem key={email}>{nameOf(email)}</SelectItem>),
             ]}
           </Select>
         </ModalBody>

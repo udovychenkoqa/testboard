@@ -7,9 +7,11 @@ import { useTranslations } from 'next-intl';
 
 import FormattedDate from '@/app/components/date-format';
 import { RunProgress } from '@/app/components/tm/result';
+import { usePeople } from '@/app/hooks/usePeople';
 
 export const RunList: React.FC<{ runs: RunSummary[] }> = ({ runs }) => {
   const t = useTranslations('tm.runs');
+  const { nameOf } = usePeople();
 
   return (
     <ul className="flex flex-col divide-y divide-divider rounded-lg border border-divider bg-content1">
@@ -32,7 +34,7 @@ export const RunList: React.FC<{ runs: RunSummary[] }> = ({ runs }) => {
               </div>
               <span className="text-[11.5px] text-default-400">
                 {t('cases', { count: run.total })} · <FormattedDate relativeDay date={new Date(run.createdAt)} /> ·{' '}
-                {t('createdBy', { who: run.createdBy })}
+                {t('createdBy', { who: nameOf(run.createdBy) })}
               </span>
             </div>
             <RunProgress className="w-full md:w-64" counts={run.counts} total={run.total} />

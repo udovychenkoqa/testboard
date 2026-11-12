@@ -670,5 +670,23 @@
       "openReport": "Відкрити звіт",
       "branchTotal": "Разом з усіма підсюїтами"
     }
+  },
+  "profile": {
+    "title": "Профіль",
+    "firstName": "Ім'я",
+    "lastName": "Прізвище",
+    "position": "Посада",
+    "save": "Зберегти",
+    "saved": "Профіль збережено",
+    "upload": "Завантажити фото",
+    "removePhoto": "Прибрати фото",
+    "photoHint": "PNG, JPG або WebP, до 200 КБ",
+    "photoUpdated": "Фото оновлено",
+    "photoRemoved": "Фото прибрано",
+    "photoFailed": "Не вдалося оновити фото",
+    "photoBadType": "Потрібен PNG, JPG або WebP",
+    "photoTooBig": "Файл більший за 200 КБ",
+    "needsSignIn": "Профіль доступний після входу через Google: вхід по API-ключу не має особистого акаунта.",
+    "menuItem": "Профіль"
   }
 }

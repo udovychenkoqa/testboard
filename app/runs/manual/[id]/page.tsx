@@ -20,6 +20,7 @@ import useQuery from '@/app/hooks/useQuery';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { RESULTS, type Result } from '@/app/lib/tm/constants';
+import { usePeople } from '@/app/hooks/usePeople';
 
 type RunDetail = { run: RunSummary; projectId: number; cases: RunCaseView[] };
 
@@ -28,6 +29,7 @@ const ALL = '__all';
 export default function RunPage({ params }: Readonly<{ params: { id: string } }>) {
   const runId = Number(params.id);
   const t = useTranslations('tm.runs');
+  const { nameOf } = usePeople();
   const canEdit = useCanManageCases();
   const { data: session } = useSession();
   const me = session?.user?.email?.toLowerCase() ?? null;
@@ -208,7 +210,7 @@ export default function RunPage({ params }: Readonly<{ params: { id: string } }>
                       <span className="w-16 shrink-0 font-mono text-[11.5px] text-default-400">{c.snapshot.label}</span>
                       <span className="min-w-[96px] flex-1 truncate text-[13px]">{c.snapshot.title}</span>
                       <span className="hidden max-w-[200px] shrink-0 truncate text-[11.5px] text-default-400 md:block">
-                        {c.assignee ?? t('unassigned')}
+                        {c.assignee ? nameOf(c.assignee) : t('unassigned')}
                       </span>
                       <span className="flex w-[104px] shrink-0 justify-end">
                         <ResultBadge value={c.result} />

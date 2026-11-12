@@ -670,5 +670,23 @@
       "openReport": "Open report",
       "branchTotal": "Total including all sub-suites"
     }
+  },
+  "profile": {
+    "title": "Profile",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "position": "Position",
+    "save": "Save",
+    "saved": "Profile saved",
+    "upload": "Upload photo",
+    "removePhoto": "Remove photo",
+    "photoHint": "PNG, JPG or WebP, up to 200 KB",
+    "photoUpdated": "Photo updated",
+    "photoRemoved": "Photo removed",
+    "photoFailed": "Couldn't update the photo",
+    "photoBadType": "Use a PNG, JPG or WebP image",
+    "photoTooBig": "The file is larger than 200 KB",
+    "needsSignIn": "A profile needs a Google sign-in: an API-key session has no personal account.",
+    "menuItem": "Profile"
   }
 }

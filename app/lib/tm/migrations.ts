@@ -112,4 +112,20 @@ export const MIGRATIONS: string[] = [
   );
   ALTER TABLE tm_projects ADD COLUMN logo_updated_at TEXT;
   `,
+  // 5: what a person says about themselves (name, position, photo), keyed by sign-in email. The photo is a
+  // separate table for the same reason as project logos.
+  `
+  CREATE TABLE user_profiles (
+    email TEXT PRIMARY KEY,
+    first_name TEXT NOT NULL DEFAULT '',
+    last_name TEXT NOT NULL DEFAULT '',
+    position TEXT NOT NULL DEFAULT '',
+    avatar_updated_at TEXT
+  );
+  CREATE TABLE user_avatars (
+    email TEXT PRIMARY KEY REFERENCES user_profiles(email) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    data BLOB NOT NULL
+  );
+  `,
 ];

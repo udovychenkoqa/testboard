@@ -1,15 +1,18 @@
 'use client';
 
-import { Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Switch } from '@heroui/react';
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Switch } from '@heroui/react';
 import { signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { useIsSSR } from '@react-aria/ssr';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ChevronsUpDown, Settings, KeyRound, LogOut, Moon, Languages } from 'lucide-react';
+import { ChevronsUpDown, Settings, KeyRound, LogOut, Moon, Languages, UserRound } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { useAuthConfig } from '@/app/hooks/useAuthConfig';
+import { usePeople } from '@/app/hooks/usePeople';
+import { PersonAvatar } from '@/app/components/person-avatar';
+import { displayName } from '@/app/lib/profileName';
 import { isAdminRole } from '@/app/lib/access';
 import { LanguageSwitch } from '@/app/components/language-switch';
 
@@ -36,18 +39,22 @@ export const UserMenu: React.FC = () => {
   const { authRequired } = useAuthConfig();
   const { theme: themeName, setTheme } = useTheme();
   const isSSR = useIsSSR();
+  const tp = useTranslations('profile');
+  const { profileOf } = usePeople(status === 'authenticated');
 
   if (status !== 'authenticated') return null;
 
-  const name = session?.user?.name;
   const email = session?.user?.email;
+  const profile = profileOf(email);
+  // The name from the person's profile wins over the one the sign-in provider gave us.
+  const name = displayName(profile, session?.user?.name ?? '') || undefined;
   const image = session?.user?.image ?? undefined;
   const role = session?.user?.role;
   const apiToken = session?.user?.apiToken;
-  const displayName = name || email;
+  const shownName = name || email;
 
   // API-token / no-auth mode has no identity — render nothing.
-  if (!displayName) return null;
+  if (!shownName) return null;
 
   const isAdmin = authRequired === false || isAdminRole(role);
   const provider = providerLabel(session?.user?.jwtToken);
@@ -65,9 +72,15 @@ export const UserMenu: React.FC = () => {
           className="flex h-11 w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-default-100 data-[open=true]:bg-default-100"
           type="button"
         >
-          <Avatar className="h-[26px] w-[26px] shrink-0 text-tiny" name={displayName} src={image} />
+          <PersonAvatar
+            avatarUpdatedAt={profile?.avatarUpdatedAt}
+            className="h-[26px] w-[26px] shrink-0 text-tiny"
+            email={email}
+            fallbackSrc={image}
+            name={shownName}
+          />
           <div className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="truncate text-xs font-medium">{name ?? displayName}</span>
+            <span className="truncate text-xs font-medium">{shownName}</span>
             {role && <span className="truncate text-[10px] uppercase tracking-wide text-default-400">{role}</span>}
           </div>
           <ChevronsUpDown className="shrink-0 text-default-400" size={12} />
@@ -95,6 +108,17 @@ export const UserMenu: React.FC = () => {
             )}
           </div>
         </DropdownItem>
+
+        {email ? (
+          <DropdownItem
+            key="profile-settings"
+            className="h-8 rounded-lg px-2.5 text-[12.5px] text-default-600"
+            startContent={<UserRound size={14} />}
+            onPress={() => router.push('/profile')}
+          >
+            {tp('menuItem')}
+          </DropdownItem>
+        ) : null}
 
         <DropdownItem
           key="theme"

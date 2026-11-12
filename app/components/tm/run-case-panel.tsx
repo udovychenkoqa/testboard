@@ -21,6 +21,7 @@ import { Select } from '@/app/components/ui/select';
 import FormattedDate from '@/app/components/date-format';
 import { ResultBadge } from '@/app/components/tm/result';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
+import { usePeople } from '@/app/hooks/usePeople';
 
 interface RunCasePanelProps {
   runId: number;
@@ -52,6 +53,7 @@ export const RunCasePanel: React.FC<RunCasePanelProps> = ({
   onNext,
 }) => {
   const t = useTranslations('tm.runs');
+  const { nameOf } = usePeople();
   const tc = useTranslations('tm.common');
   const [comment, setComment] = useState('');
 
@@ -99,7 +101,7 @@ export const RunCasePanel: React.FC<RunCasePanelProps> = ({
                 <ResultBadge value={runCase.result} />
                 {runCase.resultBy && runCase.resultAt && (
                   <span>
-                    {t('resultBy', { result: t(`result.${runCase.result}`), who: runCase.resultBy })} ·{' '}
+                    {t('resultBy', { result: t(`result.${runCase.result}`), who: nameOf(runCase.resultBy) })} ·{' '}
                     <FormattedDate relativeDay date={new Date(runCase.resultAt)} />
                   </span>
                 )}
@@ -184,7 +186,7 @@ export const RunCasePanel: React.FC<RunCasePanelProps> = ({
               >
                 {[
                   <SelectItem key={UNASSIGNED}>{t('unassigned')}</SelectItem>,
-                  ...options.map((email) => <SelectItem key={email}>{email}</SelectItem>),
+                  ...options.map((email) => <SelectItem key={email}>{nameOf(email)}</SelectItem>),
                 ]}
               </Select>
             </DrawerBody>
