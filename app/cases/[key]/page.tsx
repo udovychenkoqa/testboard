@@ -9,7 +9,7 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Input, SelectItem } from '@heroui/react';
 import { useTranslations } from 'next-intl';
-import { FolderPlus, ListChecks, Play, Plus, Search, SearchX, Trash2, Zap } from 'lucide-react';
+import { FileUp, FolderPlus, ListChecks, Play, Plus, Search, SearchX, Trash2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Select } from '@/app/components/ui/select';
@@ -19,13 +19,16 @@ import { GridSkeleton } from '@/app/components/ui/skeletons';
 import { CaseList } from '@/app/components/tm/case-list';
 import { CasePanel } from '@/app/components/tm/case-panel';
 import { ConfirmModal } from '@/app/components/tm/confirm-modal';
+import { ImportCasesModal } from '@/app/components/tm/import-cases-modal';
 import { NameModal } from '@/app/components/tm/name-modal';
 import { ProjectAvatar } from '@/app/components/tm/project-avatar';
 import { SuiteTree } from '@/app/components/tm/suite-tree';
 import useQuery from '@/app/hooks/useQuery';
+import { useCan } from '@/app/hooks/useCan';
 import { useCanManageCases } from '@/app/hooks/useCanManageCases';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { useTmProject } from '@/app/hooks/useTmProject';
+import { CAPABILITIES } from '@/app/lib/access';
 import { AUTOMATION, CASE_STATUSES, PRIORITIES } from '@/app/lib/tm/constants';
 
 type FilterKey = 'priority' | 'status' | 'automation';
@@ -37,6 +40,7 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
   const t = useTranslations('tm');
   const router = useRouter();
   const canEdit = useCanManageCases();
+  const canImport = useCan(CAPABILITIES.manageProjects);
   const [, setProject] = useTmProject();
 
   const [suiteId, setSuiteId] = useState<number | null>(null);
@@ -45,6 +49,7 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [panel, setPanel] = useState<PanelMode>(null);
   const [nameDialog, setNameDialog] = useState<NameDialog>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ kind: 'suite'; suite: SuiteNode } | { kind: 'cases' } | null>(null);
 
   useEffect(() => setProject(key), [key, setProject]);
@@ -103,6 +108,17 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
         actions={
           canEdit && (
             <div className="flex items-center gap-2">
+              {canImport && (
+                <Button
+                  className="h-[30px] px-2.5 text-xs"
+                  size="sm"
+                  startContent={<FileUp size={14} />}
+                  variant="bordered"
+                  onPress={() => setImportOpen(true)}
+                >
+                  {t('import.button')}
+                </Button>
+              )}
               <Button
                 className="h-[30px] px-2.5 text-xs"
                 size="sm"
@@ -300,6 +316,8 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
       </div>
 
       <CasePanel canEdit={canEdit} mode={panel} projectKey={key} suites={suites} onClose={() => setPanel(null)} />
+
+      <ImportCasesModal isOpen={importOpen} projectKey={key} onClose={() => setImportOpen(false)} />
 
       <NameModal
         initial={nameDialog?.kind === 'rename' ? nameDialog.suite.name : ''}

@@ -676,6 +676,22 @@
       "title": "Change history",
       "empty": "Nobody has changed this case yet.",
       "steps": "Steps: was {from}, now {to}"
+    },
+    "import": {
+      "button": "Import",
+      "title": "Import test cases",
+      "hint": "Upload a CSV file with the columns Folder and Name (optional: Priority, Tags, Preconditions, Step 1 / Expected 1, …). Folders become suites and cases get new numbers in this project.",
+      "chooseFile": "Choose CSV file",
+      "casesNew": "new cases",
+      "suitesNew": "new suites",
+      "casesSkipped": "already here",
+      "skippedHint": "A case with the same title in the same suite is skipped, so importing a file twice adds nothing.",
+      "problems": "{count, plural, one {# note about the file} other {# notes about the file}}",
+      "moreProblems": "…and {count} more",
+      "confirm": "Import",
+      "done": "Imported: {cases} cases, {suites} new suites",
+      "failed": "Could not read the file. Check that it is a CSV export.",
+      "tooBig": "The file must be 5 MB or smaller"
     }
   },
   "profile": {

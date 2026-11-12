@@ -76,7 +76,8 @@ describe('requiredCapability for /api/tm', () => {
     ['POST', '/api/tm/projects'],
     ['POST', '/base/api/tm/projects'],
     ['DELETE', '/api/tm/projects/hw'],
-  ])('%s %s (create or delete a project) needs manage:projects', (method, path) => {
+    ['POST', '/api/tm/projects/hw/import'],
+  ])('%s %s (create, delete or bulk-import into a project) needs manage:projects', (method, path) => {
     expect(requiredCapability(path, method)).toBe(CAPABILITIES.manageProjects);
   });
 

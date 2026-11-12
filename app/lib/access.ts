@@ -134,10 +134,12 @@ const GATED_ROUTES: GatedRoute[] = [
   { method: 'POST', suffix: '/api/autotests/rerun', capability: CAPABILITIES.runTests },
 ];
 
-// POST …/api/tm/projects creates a project, DELETE …/api/tm/projects/{key} removes one with everything in it.
+// POST …/api/tm/projects creates a project, DELETE …/api/tm/projects/{key} removes one with everything in it,
+// POST …/api/tm/projects/{key}/import adds cases in bulk from a file.
 const isProjectLifecycle = (pathname: string, method: string): boolean =>
   (method === 'POST' && pathname.endsWith('/api/tm/projects')) ||
-  (method === 'DELETE' && /\/api\/tm\/projects\/[^/]+$/.test(pathname));
+  (method === 'DELETE' && /\/api\/tm\/projects\/[^/]+$/.test(pathname)) ||
+  (method === 'POST' && /\/api\/tm\/projects\/[^/]+\/import$/.test(pathname));
 
 export const requiredCapability = (pathname: string, method: string): Capability => {
   if (pathname.includes('/api/tm/')) {
