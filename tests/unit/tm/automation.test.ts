@@ -1,4 +1,11 @@
-import { getAutoResult, outcomeForCase, parseCaseTags, syncReport, type SyncableReport } from '@/app/lib/tm/automation';
+import {
+  getAutoResult,
+  outcomeForCase,
+  parseCaseTags,
+  parseCaseTitle,
+  syncReport,
+  type SyncableReport,
+} from '@/app/lib/tm/automation';
 import { createCase, deleteCases, getCase, updateCase } from '@/app/lib/tm/cases';
 import { openDb, type TmDb } from '@/app/lib/tm/db';
 import { createProject } from '@/app/lib/tm/projects';
@@ -22,6 +29,49 @@ describe('parseCaseTags', () => {
     expect(parseCaseTags(['@smoke', '@HAN-12', 'han-3', '@HAN-12', '@OTHER-5', '@HAN-x', '@HAN-'], 'HAN')).toEqual([
       12, 3,
     ]);
+  });
+});
+
+describe('parseCaseTitle', () => {
+  it('reads the case labels a test title starts with', () => {
+    expect(parseCaseTitle('HM-36 the header menu opens', 'HM')).toEqual([36]);
+    expect(parseCaseTitle('HM-40 HM-11 the rails list serials', 'HM')).toEqual([40, 11]);
+    expect(parseCaseTitle('hm-7, HM-8: both work', 'HM')).toEqual([7, 8]);
+  });
+
+  it('ignores labels of other projects and labels that are not at the start', () => {
+    expect(parseCaseTitle('OTHER-5 something', 'HM')).toEqual([]);
+    expect(parseCaseTitle('opens the page from HM-36', 'HM')).toEqual([]);
+    expect(parseCaseTitle('HM-x broken label', 'HM')).toEqual([]);
+    expect(parseCaseTitle('', 'HM')).toEqual([]);
+  });
+});
+
+describe('a report whose tests name their cases in the title', () => {
+  it('links them just like tagged tests', () => {
+    const db = openDb(':memory:');
+    const project = createProject(db, { key: 'hanimax', name: 'HanimaX', code: 'HM' });
+    const suite = createSuite(db, { projectId: project.id, name: 'Root' });
+    const first = createCase(db, project.id, { suiteId: suite.id, title: 'Header menu' }, 'qa');
+    const second = createCase(db, project.id, { suiteId: suite.id, title: 'Rails' }, 'qa');
+
+    const summary = syncReport(db, {
+      reportID: 'r1',
+      reportUrl: '/api/serve/hanimax/r1/index.html',
+      project: 'hanimax',
+      files: [
+        {
+          tests: [
+            { title: `HM-${first.number} the header menu opens`, tags: ['@smoke'], outcome: 'expected' },
+            { title: `HM-${second.number} HM-${first.number} the rails list serials`, tags: [], outcome: 'unexpected' },
+          ],
+        },
+      ],
+    } as SyncableReport);
+
+    expect(summary.linkedCases).toBe(2);
+    expect(getAutoResult(db, first.id)?.result).toBe('failed');
+    expect(getAutoResult(db, second.id)?.result).toBe('failed');
   });
 });
 

@@ -44,6 +44,15 @@ export const parseCaseTags = (tags: string[], code: string): number[] => {
   return [...new Set(numbers)];
 };
 
+// The autotests may name the case in the title instead of a tag: "HM-36 the header menu opens", or several
+// labels in a row ("HM-40 HM-11 …"). Only labels the title starts with count, so a mention later in the
+// sentence doesn't link the test.
+export const parseCaseTitle = (title: string, code: string): number[] => {
+  const head = title.match(new RegExp(`^(?:${code}-\\d+[\\s,:]+)+`, 'i'))?.[0] ?? '';
+
+  return [...new Set([...head.matchAll(/-(\d+)/g)].map((m) => Number(m[1])))];
+};
+
 export const outcomeForCase = (outcomes: Outcome[]): AutoResult => {
   if (outcomes.includes('unexpected')) return 'failed';
   if (outcomes.some((o) => o === 'expected' || o === 'flaky')) return 'passed';
@@ -87,12 +96,17 @@ export const syncReport = (db: TmDb, report: SyncableReport): SyncSummary => {
 
   if (!project) return empty;
 
-  // case number → the tests that carry its tag
+  // case number → the tests that carry its tag or name it in the title
   const byNumber = new Map<number, { title: string; outcome: Outcome }[]>();
 
   for (const file of report.files ?? []) {
     for (const test of file.tests ?? []) {
-      for (const number of parseCaseTags(test.tags ?? [], project.code)) {
+      const numbers = new Set([
+        ...parseCaseTags(test.tags ?? [], project.code),
+        ...parseCaseTitle(test.title ?? '', project.code),
+      ]);
+
+      for (const number of numbers) {
         byNumber.set(number, [...(byNumber.get(number) ?? []), { title: test.title, outcome: test.outcome }]);
       }
     }
