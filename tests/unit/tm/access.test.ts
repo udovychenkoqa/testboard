@@ -58,6 +58,9 @@ describe('the API token (CI and scripts)', () => {
     ['POST', '/api/tm/projects/hw/cases'],
     ['PATCH', '/api/tm/cases/7'],
     ['PATCH', '/api/tm/runs/2/cases/5'],
+    ['POST', '/api/autotests/trigger'],
+    ['POST', '/api/autotests/cancel'],
+    ['POST', '/api/autotests/rerun'],
   ])('may %s %s', (method, path) => {
     expect(tokenCan(path, method)).toBe(true);
   });
@@ -66,9 +69,6 @@ describe('the API token (CI and scripts)', () => {
     ['PATCH', '/api/config'],
     ['GET', '/api/access'],
     ['POST', '/api/access'],
-    ['POST', '/api/autotests/trigger'],
-    ['POST', '/api/autotests/cancel'],
-    ['POST', '/api/autotests/rerun'],
   ])('may not %s %s', (method, path) => {
     expect(tokenCan(path, method)).toBe(false);
   });

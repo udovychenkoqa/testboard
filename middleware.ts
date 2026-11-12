@@ -56,8 +56,8 @@ export default auth((request) => {
     return can(role, capability) ? NextResponse.next() : CommonResponseFactory.buildForbiddenResponse();
   }
 
-  // CI / programmatic path: a matching Authorization header gets the token's capabilities (no settings,
-  // roles or pipeline triggers; see apiTokenCan).
+  // CI / programmatic path: a matching Authorization header gets the token's capabilities (everything but
+  // settings and roles; see apiTokenCan).
   if (
     env.API_TOKEN &&
     isAuthorized({ actualAuthToken: request.headers.get('Authorization'), expectedAuthToken: env.API_TOKEN })

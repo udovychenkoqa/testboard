@@ -109,8 +109,8 @@ Key decisions:
   `roleStore.ts`), otherwise `viewer` for an allowed domain.
 - **Enforcement** happens in `middleware.ts` for every `/api/*` via `can(role, requiredCapability(...))`.
   A request with no session but a matching `Authorization: <API_TOKEN>` header (CI, scripts) gets
-  `apiTokenCan()`: uploads, report generation, reads and test management, but not Settings, roles or
-  pipeline triggers.
+  `apiTokenCan()`: uploads, report generation, reads, test management and autotest pipelines, but not
+  Settings or roles.
   `/api/tm/*`: GET needs `view`, everything else `manage:cases`. `tmRoute` repeats the check in the Node
   runtime (session + API token).
 
