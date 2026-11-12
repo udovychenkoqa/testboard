@@ -65,7 +65,7 @@ describe('gitlab client', () => {
     expect(gitlab.isGitlabConfigured()).toBe(true);
 
     fetchMock.mockResolvedValueOnce(json(apiPipeline({ status: 'created' })));
-    await gitlab.createPipeline({ env: 'dev', mode: 'smoke', skip_visual_checks: false });
+    await gitlab.createPipeline({ env: 'dev', suite: 'smoke', skip_visual_checks: false });
 
     const [url, init] = fetchMock.mock.calls[0];
 
@@ -75,15 +75,15 @@ describe('gitlab client', () => {
     expect(JSON.parse(init.body).ref).toBe('master');
   });
 
-  it('creates a pipeline on the configured ref with inputs', async () => {
+  it('creates a pipeline on the configured ref with the pipeline variables', async () => {
     const gitlab = load();
 
     fetchMock.mockResolvedValueOnce(json(apiPipeline({ status: 'created' })));
 
     const pipeline = await gitlab.createPipeline({
-      env: 'stage',
-      mode: 'by tag',
-      tag: '@smoke',
+      env: 'dev',
+      suite: 'regression',
+      tag: '@payment',
       skip_visual_checks: true,
     });
 
@@ -94,7 +94,12 @@ describe('gitlab client', () => {
     expect(init.headers['PRIVATE-TOKEN']).toBe(TOKEN);
     expect(JSON.parse(init.body)).toEqual({
       ref: 'main',
-      inputs: { env: 'stage', mode: 'by tag', tag: '@smoke', skip_visual_checks: true },
+      variables: [
+        { key: 'ENV', value: 'dev' },
+        { key: 'SUITE', value: 'regression' },
+        { key: 'TAG', value: '@payment' },
+        { key: 'SKIP_VISUAL_CHECKS', value: 'true' },
+      ],
     });
     expect(pipeline).toEqual({
       id: 901,

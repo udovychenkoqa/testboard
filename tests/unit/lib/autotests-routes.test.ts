@@ -62,13 +62,15 @@ describe('/api/autotests routes', () => {
   it('triggers with defaults filled and remembers who started it', async () => {
     gitlab.createPipeline.mockResolvedValue(pipeline(901));
 
-    const res = await trigger(post({ env: 'stage', tag: '@api' }));
+    const res = await trigger(post({ env: 'prod', tag: '@payment' }));
 
     expect(res.status).toBe(200);
     expect(gitlab.createPipeline).toHaveBeenCalledWith({
-      env: 'stage',
-      mode: 'by tag',
-      tag: '@api',
+      env: 'prod',
+      suite: 'smoke',
+      tag: '@payment',
+      dev_branch: '',
+      dev_core: 'static',
       force_snapshots_recollection: false,
       skip_visual_checks: true,
       testboard_run: '',
@@ -94,7 +96,7 @@ describe('/api/autotests routes', () => {
   });
 
   it('reruns a Testboard pipeline as a new one with the same inputs', async () => {
-    const inputs = { env: 'dev', mode: 'smoke', tag: '@smoke', skip_visual_checks: false };
+    const inputs = { env: 'dev', suite: 'smoke', tag: '@payment', skip_visual_checks: false };
 
     recordPipeline(db, { pipelineId: 901, startedBy: 'someone', inputs });
     gitlab.createPipeline.mockResolvedValue(pipeline(905));

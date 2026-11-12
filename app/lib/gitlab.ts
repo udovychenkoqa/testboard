@@ -1,4 +1,5 @@
 import { env } from '@/app/config/env';
+import { toPipelineVariables } from '@/app/lib/autotests/inputs';
 
 // Thin server-side client for the GitLab REST API (v4), scoped to the autotests project. The token never
 // leaves the server — the UI talks to our /api/autotests/* routes, which call this.
@@ -96,8 +97,12 @@ const toPipeline = (p: ApiPipeline): Pipeline => ({
   link: p.web_url,
 });
 
+// The autotests pipeline takes its settings as CI/CD variables (ENV, SUITE, TAG, …), not as `spec.inputs`.
 export const createPipeline = async (inputs: PipelineInputs): Promise<Pipeline> => {
-  const response = await gitlabFetch('/pipeline', { method: 'POST', body: { ref: env.GITLAB_REF, inputs } });
+  const response = await gitlabFetch('/pipeline', {
+    method: 'POST',
+    body: { ref: env.GITLAB_REF, variables: toPipelineVariables(inputs) },
+  });
 
   return toPipeline(await response.json());
 };

@@ -3,6 +3,7 @@
 import type { ActiveRun } from '@/app/lib/tm/runs';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Avatar, Button, Input, Link, Pagination, SelectItem, Spinner, Switch } from '@heroui/react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -23,24 +24,20 @@ import { EmptyState } from '@/app/components/ui/empty-state';
 import { useDateLabels } from '@/app/components/date-format';
 import { formatAgo } from '@/i18n/dates';
 import {
+  casesFilter,
   DEFAULT_INPUTS,
+  DEV_CORES,
   ENVIRONMENTS,
-  MODES,
+  SUITES,
+  suitesFor,
   TAG_PRESETS,
-  type Mode,
+  type Suite,
   type TriggerInputs,
 } from '@/app/lib/autotests/inputs';
 
 const PREFS_KEY = 'run-tests-prefs';
 // Select keys can't be empty; stands for testboard_run ''.
 const NO_RUN = 'none';
-
-// Message keys can't contain spaces, so the "by tag" mode gets a camelCase key.
-const MODE_KEY: Record<Mode, 'byTag' | 'smoke' | 'regression'> = {
-  'by tag': 'byTag',
-  smoke: 'smoke',
-  regression: 'regression',
-};
 
 interface BuildItem {
   id: number;
@@ -101,15 +98,11 @@ const formatDuration = (seconds: number): string => {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 };
 
-// Inputs are known only for pipelines started from Testboard. Show env · mode · tag (the tag only when the
-// mode uses it) and nothing for pipelines started elsewhere.
-const ParamChips: React.FC<{ build: BuildItem; modeLabel: (mode: Mode) => string }> = ({ build, modeLabel }) => {
+// Inputs are known only for pipelines started from Testboard. Show env · suite · filter and nothing for
+// pipelines started elsewhere.
+const ParamChips: React.FC<{ build: BuildItem }> = ({ build }) => {
   const inputs = build.inputs;
-  const parts = inputs
-    ? ([inputs.env, inputs.mode && modeLabel(inputs.mode), inputs.mode === 'by tag' ? inputs.tag : undefined].filter(
-        Boolean,
-      ) as string[])
-    : [];
+  const parts = inputs ? ([inputs.env, inputs.suite, inputs.tag].filter(Boolean) as string[]) : [];
 
   if (parts.length === 0) return <span className="text-default-400">—</span>;
 
@@ -174,9 +167,13 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const tc = useTranslations('common');
   const session = useSession();
   const currentUser = session.data?.user?.name ?? session.data?.user?.email ?? null;
-  const modeLabel = (mode: Mode) => t(`modes.${MODE_KEY[mode]}`);
-
+  const searchParams = useSearchParams();
   const [inputs, setInputs] = useState<TriggerInputs>(DEFAULT_INPUTS);
+  // Cases picked on the Test cases page ("Run autotests"): their labels arrive as ?cases=HM-36,HM-40.
+  const presetCases = useMemo(
+    () => (searchParams?.get('cases') ?? '').split(',').filter((label) => /^[A-Z][A-Z0-9]*-\d+$/.test(label)),
+    [searchParams],
+  );
   const set = <K extends keyof TriggerInputs>(key: K, value: TriggerInputs[K]) =>
     setInputs((prev) => ({ ...prev, [key]: value }));
   // The snapshot inputs are used rarely — hidden behind a toggle to keep the form clean.
@@ -193,10 +190,24 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
     try {
       const saved = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
 
-      if (ENVIRONMENTS.includes(saved.env)) setInputs((prev) => ({ ...prev, env: saved.env }));
-      if (MODES.includes(saved.mode)) setInputs((prev) => ({ ...prev, mode: saved.mode }));
+      // dev-dynamic needs a branch typed in each time, so it isn't restored.
+      if (ENVIRONMENTS.includes(saved.env) && saved.env !== 'dev-dynamic') {
+        setInputs((prev) => ({ ...prev, env: saved.env }));
+      }
+      if (SUITES.includes(saved.suite)) {
+        setInputs((prev) => ({ ...prev, suite: suitesFor(prev.env).includes(saved.suite) ? saved.suite : 'smoke' }));
+      }
     } catch {
       /* ignore malformed prefs */
+    }
+    // Selected cases can sit in any suite, so run "all" narrowed to them (prod only has smoke).
+    if (presetCases.length) {
+      setInputs((prev) => ({
+        ...prev,
+        env: prev.env === 'prod' ? 'dev' : prev.env,
+        suite: 'all',
+        tag: casesFilter(presetCases),
+      }));
     }
   }, []);
 
@@ -239,7 +250,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
 
   const run = () => {
     try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({ env: inputs.env, mode: inputs.mode }));
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ env: inputs.env, suite: inputs.suite }));
     } catch {
       /* ignore */
     }
@@ -283,9 +294,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
   const successCount = builds.filter((b) => b.status === 'success').length;
 
   // Live "what will run" summary for the footer.
-  const summaryParts = [inputs.env, modeLabel(inputs.mode), inputs.mode === 'by tag' ? inputs.tag || '—' : null].filter(
-    Boolean,
-  ) as string[];
+  const summaryParts = [inputs.env, inputs.suite, inputs.tag || null].filter(Boolean) as string[];
 
   const gridColumns: GridColumn[] = [
     { key: 'build', label: t('columns.build') },
@@ -321,7 +330,8 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as TriggerInputs['env'] | undefined;
 
-                  if (value) set('env', value);
+                  // prod runs only the read-only smoke suite; keep the form on a choice the pipeline accepts.
+                  if (value) setInputs((prev) => ({ ...prev, env: value, suite: suitesFor(value).includes(prev.suite) ? prev.suite : 'smoke' }));
                 }}
               >
                 {ENVIRONMENTS.map((envName) => (
@@ -331,25 +341,26 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
               <Select
                 disallowEmptySelection
                 classNames={{ trigger: 'h-8 min-h-8' }}
-                label={t('mode')}
+                label={t('suite')}
                 labelPlacement="outside"
-                selectedKeys={[inputs.mode]}
+                selectedKeys={[inputs.suite]}
                 size="sm"
                 variant="bordered"
                 onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as Mode | undefined;
+                  const value = Array.from(keys)[0] as Suite | undefined;
 
-                  if (value) set('mode', value);
+                  if (value) set('suite', value);
                 }}
               >
-                {MODES.map((mode) => (
-                  <SelectItem key={mode}>{modeLabel(mode)}</SelectItem>
+                {suitesFor(inputs.env).map((suite) => (
+                  <SelectItem key={suite}>{suite}</SelectItem>
                 ))}
               </Select>
               <Input
                 classNames={{ inputWrapper: 'h-8 min-h-8' }}
                 description={
                   <span className="flex flex-wrap items-center gap-1">
+                    <span className="text-[10.5px] text-default-400">{t('tagHint')}</span>
                     {TAG_PRESETS.map((preset) => (
                       <button
                         key={preset}
@@ -358,7 +369,6 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-default-100 text-default-500 hover:bg-default-200'
                         }`}
-                        disabled={inputs.mode !== 'by tag'}
                         type="button"
                         onClick={() => set('tag', preset)}
                       >
@@ -367,7 +377,6 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
                     ))}
                   </span>
                 }
-                isDisabled={inputs.mode !== 'by tag'}
                 label={t('tag')}
                 labelPlacement="outside"
                 size="sm"
@@ -378,7 +387,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
               <Button
                 className="h-8 px-5 md:mt-6"
                 color="primary"
-                isDisabled={gitlabOff}
+                isDisabled={gitlabOff || (inputs.env === 'dev-dynamic' && !inputs.dev_branch.trim())}
                 isLoading={isTriggering}
                 startContent={!isTriggering && <Play size={13} />}
                 onPress={run}
@@ -386,6 +395,46 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
                 {t('run')}
               </Button>
             </div>
+
+            {presetCases.length > 0 && (
+              <p className="mt-3 rounded-lg bg-primary/10 px-3 py-2 text-[12px] text-primary">
+                {t('casesPrefilled', { count: presetCases.length })}
+              </p>
+            )}
+
+            {inputs.env === 'dev-dynamic' && (
+              <div className="mt-3 grid grid-cols-1 items-start gap-3 md:grid-cols-[1fr_170px]">
+                <Input
+                  isRequired
+                  classNames={{ inputWrapper: 'h-8 min-h-8' }}
+                  description={t('devBranchHint')}
+                  label={t('devBranch')}
+                  labelPlacement="outside"
+                  size="sm"
+                  value={inputs.dev_branch}
+                  variant="bordered"
+                  onValueChange={(value) => set('dev_branch', value)}
+                />
+                <Select
+                  disallowEmptySelection
+                  classNames={{ trigger: 'h-8 min-h-8' }}
+                  label={t('devCore')}
+                  labelPlacement="outside"
+                  selectedKeys={[inputs.dev_core]}
+                  size="sm"
+                  variant="bordered"
+                  onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0] as TriggerInputs['dev_core'] | undefined;
+
+                    if (value) set('dev_core', value);
+                  }}
+                >
+                  {DEV_CORES.map((core) => (
+                    <SelectItem key={core}>{core}</SelectItem>
+                  ))}
+                </Select>
+              </div>
+            )}
 
             {showAdvanced && (
               <div className="mt-3 rounded-lg border border-dashed border-default-300 bg-default-50 p-4">
@@ -479,7 +528,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
             <span className="text-[12.5px] text-warning-700 dark:text-warning-400">{build.status}</span>
             <span className="font-mono text-[11.5px] tabular-nums text-default-500">{duration(build)}</span>
             <div className="min-w-0 flex-1 truncate">
-              <ParamChips build={build} modeLabel={modeLabel} />
+              <ParamChips build={build} />
             </div>
             {build.inputs ? (
               <Button
@@ -585,7 +634,7 @@ export default function RunTests({ embedded = false }: { embedded?: boolean } = 
                       </Link>
                       <StatusCell status={build.status} />
                       <div className="min-w-0 pr-2">
-                        <ParamChips build={build} modeLabel={modeLabel} />
+                        <ParamChips build={build} />
                       </div>
                       <StartedBy build={build} />
                       <span

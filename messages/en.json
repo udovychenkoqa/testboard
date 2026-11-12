@@ -243,7 +243,7 @@
   "runTests": {
     "title": "Run Tests",
     "environment": "Environment",
-    "tag": "Tag",
+    "tag": "Filter",
     "run": "Run",
     "advanced": "Advanced",
     "willRun": "Will run:",
@@ -278,12 +278,6 @@
       "noMatchTitle": "No matching runs",
       "noMatchDescription": "No runs on this page match the current status, env or “Only mine” filters."
     },
-    "mode": "Mode",
-    "modes": {
-      "byTag": "By tag",
-      "smoke": "Smoke",
-      "regression": "Regression"
-    },
     "forceSnapshots": "Re-collect snapshots even if baselines exist",
     "skipVisual": "Skip visual checks",
     "openInGitlab": "Open in GitLab",
@@ -299,7 +293,13 @@
     "testboardRun": "Testboard run",
     "testboardRunHint": "Autotests write the results of the cases they cover (tag @CODE-N) into this run.",
     "testboardRunNone": "Don’t write to a run",
-    "testboardRunNew": "Create a new run"
+    "testboardRunNew": "Create a new run",
+    "suite": "Suite",
+    "tagHint": "A tag or a test title; commas mean \"or\"",
+    "devBranch": "hanimax-web branch",
+    "devBranchHint": "E.g. feature/HM-289_reg-funnel",
+    "devCore": "Core",
+    "casesPrefilled": "{count, plural, one {# case} other {# cases}} selected. Check the environment and press Run."
   },
   "settings": {
     "page": {
@@ -668,7 +668,9 @@
       "dragCount": "{count, plural, one {# case} other {# cases}}",
       "autoResult": "Autotest:",
       "openReport": "Open report",
-      "branchTotal": "Total including all sub-suites"
+      "branchTotal": "Total including all sub-suites",
+      "runAutotests": "Run autotests",
+      "runAutotestsNone": "None of the selected cases is automated"
     },
     "history": {
       "title": "Change history",

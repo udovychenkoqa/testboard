@@ -13,11 +13,10 @@ test.describe('Automated runs (GitLab)', () => {
     await page.goto('/runs/automated');
 
     // HeroUI Select = a visible trigger button plus a hidden native <select>.
-    await expect(page.getByRole('button', { name: /Environment/ })).toContainText('prod');
-    await expect(page.getByRole('button', { name: /Mode/ })).toContainText('By tag');
-    await expect(page.locator('input[aria-label="Tag"]')).toHaveValue('@smoke');
+    await expect(page.getByRole('button', { name: /Environment/ })).toContainText('dev');
+    await expect(page.getByRole('button', { name: /Suite/ })).toContainText('smoke');
+    await expect(page.locator('input[aria-label="Filter"]')).toHaveValue('');
     // Fields from the old Drone form are gone.
-    await expect(page.getByText('Funnel')).toHaveCount(0);
     await expect(page.getByText('Country')).toHaveCount(0);
 
     await expect(page.getByText('Skip visual checks')).toHaveCount(0);

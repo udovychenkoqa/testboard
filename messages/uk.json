@@ -243,7 +243,7 @@
   "runTests": {
     "title": "Запуск тестів",
     "environment": "Середовище",
-    "tag": "Тег",
+    "tag": "Фільтр",
     "run": "Запустити",
     "advanced": "Додатково",
     "willRun": "Запуститься:",
@@ -278,12 +278,6 @@
       "noMatchTitle": "Нічого не знайдено",
       "noMatchDescription": "Жоден прогін на цій сторінці не відповідає фільтрам статусу, env чи «Тільки мої»."
     },
-    "mode": "Режим",
-    "modes": {
-      "byTag": "За тегом",
-      "smoke": "Smoke",
-      "regression": "Регресія"
-    },
     "forceSnapshots": "Перезібрати скріншоти, навіть якщо еталони є",
     "skipVisual": "Пропустити візуальні перевірки",
     "openInGitlab": "Відкрити в GitLab",
@@ -299,7 +293,13 @@
     "testboardRun": "Прогін Testboard",
     "testboardRunHint": "Автотести запишуть результати кейсів, які вони покривають (тег @CODE-N), у цей прогін.",
     "testboardRunNone": "Не записувати в прогін",
-    "testboardRunNew": "Створити новий прогін"
+    "testboardRunNew": "Створити новий прогін",
+    "suite": "Набір",
+    "tagHint": "Тег або назва тесту, через кому — «або»",
+    "devBranch": "Гілка hanimax-web",
+    "devBranchHint": "Напр. feature/HM-289_reg-funnel",
+    "devCore": "Core",
+    "casesPrefilled": "Вибрано кейсів: {count}. Перевірте середовище й натисніть «Запустити»."
   },
   "settings": {
     "page": {
@@ -668,7 +668,9 @@
       "dragCount": "{count, plural, one {# кейс} few {# кейси} many {# кейсів} other {# кейсу}}",
       "autoResult": "Автотест:",
       "openReport": "Відкрити звіт",
-      "branchTotal": "Разом з усіма підсюїтами"
+      "branchTotal": "Разом з усіма підсюїтами",
+      "runAutotests": "Запустити автотести",
+      "runAutotestsNone": "Серед вибраних немає автоматизованих кейсів"
     },
     "history": {
       "title": "Історія змін",

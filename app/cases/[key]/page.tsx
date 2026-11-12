@@ -9,7 +9,7 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Input, SelectItem } from '@heroui/react';
 import { useTranslations } from 'next-intl';
-import { FolderPlus, ListChecks, Play, Plus, Search, SearchX, Trash2 } from 'lucide-react';
+import { FolderPlus, ListChecks, Play, Plus, Search, SearchX, Trash2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Select } from '@/app/components/ui/select';
@@ -57,6 +57,7 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
   const { data: cases = [], isPending } = useQuery<CaseListItem[]>(`/api/tm/projects/${key}/cases?${query}`, {
     dependencies: [key, query],
   });
+  const automatedSelected = cases.filter((c) => selected.has(c.id) && c.automation === 'automated').map((c) => c.label);
   const totalCount = useMemo(() => suites.reduce((n, s) => n + s.caseCount, 0), [suites]);
 
   useEffect(() => setSelected(new Set()), [query]);
@@ -218,6 +219,17 @@ export default function ProjectCasesPage({ params }: Readonly<{ params: { key: s
                 onPress={() => router.push(`/runs/manual?project=${key}&cases=${[...selected].join(',')}`)}
               >
                 {t('cases.createRun')}
+              </Button>
+              {/* Only automated cases have a test to run; the Automated page builds the filter from their labels. */}
+              <Button
+                isDisabled={automatedSelected.length === 0}
+                size="sm"
+                startContent={<Zap size={13} />}
+                title={automatedSelected.length === 0 ? t('cases.runAutotestsNone') : undefined}
+                variant="flat"
+                onPress={() => router.push(`/runs/automated?cases=${automatedSelected.join(',')}`)}
+              >
+                {t('cases.runAutotests')}
               </Button>
               <Button
                 color="danger"

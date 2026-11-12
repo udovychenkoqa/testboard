@@ -17,7 +17,7 @@ describe('autotest pipeline records', () => {
   });
 
   it('stores who started a pipeline and with which inputs', () => {
-    const inputs = { env: 'stage', mode: 'by tag', tag: '@smoke', skip_visual_checks: true };
+    const inputs = { env: 'dev', suite: 'smoke', tag: '@payment', skip_visual_checks: true };
 
     recordPipeline(db, { pipelineId: 901, startedBy: 'qa@hanimax.com', inputs });
     recordPipeline(db, { pipelineId: 902, startedBy: null, inputs: { env: 'prod' } });
