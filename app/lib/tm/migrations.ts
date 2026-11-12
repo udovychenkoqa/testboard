@@ -128,4 +128,15 @@ export const MIGRATIONS: string[] = [
     data BLOB NOT NULL
   );
   `,
+  // 6: what changed in a case on each save (see caseHistory.ts). `changes` is a JSON list of { field, from, to }.
+  `
+  CREATE TABLE tm_case_history (
+    id INTEGER PRIMARY KEY,
+    case_id INTEGER NOT NULL REFERENCES tm_cases(id) ON DELETE CASCADE,
+    changed_by TEXT NOT NULL,
+    changed_at TEXT NOT NULL,
+    changes TEXT NOT NULL
+  );
+  CREATE INDEX tm_case_history_case ON tm_case_history(case_id);
+  `,
 ];

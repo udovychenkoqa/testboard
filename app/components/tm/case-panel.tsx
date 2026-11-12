@@ -25,6 +25,7 @@ import { applyTag, suggestTags } from '@/app/lib/tm/tag-suggestions';
 import { ResultBadge } from '@/app/components/tm/result';
 import { withBase } from '@/app/lib/url';
 import FormattedDate from '@/app/components/date-format';
+import { CaseHistory } from '@/app/components/tm/case-history';
 import useQuery from '@/app/hooks/useQuery';
 import { useTmMutation } from '@/app/hooks/useTmMutation';
 import { AUTOMATION, CASE_STATUSES, PRIORITIES } from '@/app/lib/tm/constants';
@@ -351,6 +352,7 @@ export const CasePanel: React.FC<CasePanelProps> = ({ projectKey, mode, suites, 
                   </span>
                 </div>
               )}
+              {current && mode?.kind === 'edit' && <CaseHistory caseId={current.id} />}
               {current && mode?.kind === 'edit' && (
                 <p className="text-[11.5px] text-default-400">
                   {t('cases.createdBy', { who: nameOf(current.createdBy) })} ·{' '}

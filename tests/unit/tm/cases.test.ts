@@ -119,7 +119,7 @@ describe('cases', () => {
       const [signIn, reset] = listCases(db, projectId, {});
 
       deleteCases(db, [signIn.id]);
-      moveCases(db, [reset.id], cart);
+      moveCases(db, [reset.id], cart, 'qa');
       expect(titles({ suiteId: cart })).toEqual(['Reset password', 'Add to cart']);
       expect(titles({})).not.toContain('Sign in');
       expect(() => getCase(db, signIn.id)).toThrow(TmError);

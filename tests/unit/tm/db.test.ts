@@ -6,6 +6,7 @@ import { openDb } from '@/app/lib/tm/db';
 
 const TABLES = [
   'tm_case_auto_results',
+  'tm_case_history',
   'tm_case_steps',
   'tm_case_tags',
   'tm_cases',

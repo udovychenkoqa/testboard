@@ -669,6 +669,11 @@
       "autoResult": "Autotest:",
       "openReport": "Open report",
       "branchTotal": "Total including all sub-suites"
+    },
+    "history": {
+      "title": "Change history",
+      "empty": "Nobody has changed this case yet.",
+      "steps": "Steps: was {from}, now {to}"
     }
   },
   "profile": {

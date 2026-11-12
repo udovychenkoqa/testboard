@@ -1,3 +1,4 @@
+import { diffCase, recordCaseChanges } from './caseHistory';
 import { type TmDb } from './db';
 import { now, TmError } from './errors';
 import { getProjectById } from './projects';
@@ -215,6 +216,7 @@ export const updateCase = (db: TmDb, id: number, patch: Partial<CaseInput>, by: 
     if (patch.steps) writeSteps(db, id, patch.steps);
     if (patch.tags) writeTags(db, id, patch.tags);
     db.prepare('UPDATE tm_cases SET updated_by = ?, updated_at = ? WHERE id = ?').run(by, now(), id);
+    recordCaseChanges(db, id, by, diffCase(db, current, getCase(db, id)));
   })();
 
   return getCase(db, id);
@@ -262,7 +264,7 @@ export const deleteCases = (db: TmDb, ids: number[]): void => {
   );
 };
 
-export const moveCases = (db: TmDb, ids: number[], suiteId: number): void => {
+export const moveCases = (db: TmDb, ids: number[], suiteId: number, by: string): void => {
   if (!ids.length) return;
   const projects = db.prepare(`SELECT DISTINCT project_id FROM tm_cases WHERE id IN (${inList(ids)})`).all(...ids) as {
     project_id: number;
@@ -270,7 +272,12 @@ export const moveCases = (db: TmDb, ids: number[], suiteId: number): void => {
 
   if (projects.length !== 1) throw new TmError('invalid', 'cases must belong to one project');
   checkSuite(db, projects[0].project_id, suiteId);
-  db.prepare(`UPDATE tm_cases SET suite_id = ? WHERE id IN (${inList(ids)})`).run(suiteId, ...ids);
+  db.transaction(() => {
+    const before = ids.map((id) => getCase(db, id));
+
+    db.prepare(`UPDATE tm_cases SET suite_id = ? WHERE id IN (${inList(ids)})`).run(suiteId, ...ids);
+    for (const was of before) recordCaseChanges(db, was.id, by, diffCase(db, was, getCase(db, was.id)));
+  })();
 };
 
 export interface TagUsage {
