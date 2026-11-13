@@ -18,6 +18,12 @@ interface UserRow {
   role: string;
 }
 
+// Somebody who has signed in (see signIns.ts); `name` is what the sign-in provider gave.
+interface SeenPerson {
+  email: string;
+  name: string;
+}
+
 const TEMPLATE = '26px 1fr 150px 130px 30px';
 
 const ROLE_ORDER = [ROLES.administrator, ROLES.member] as const;
@@ -49,6 +55,7 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
   const [rows, setRows] = useState<UserRow[]>([]);
   const [roleOptions, setRoleOptions] = useState<string[]>([...ASSIGNABLE_ROLES]);
   const [bootstrapAdmins, setBootstrapAdmins] = useState<string[]>([]);
+  const [seen, setSeen] = useState<SeenPerson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [addingEmail, setAddingEmail] = useState<string | null>(null);
@@ -72,12 +79,17 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
       });
 
       if (!response.ok) throw new Error(await response.text());
-      const data: { users: Record<string, string>; assignableRoles?: string[]; bootstrapAdmins?: string[] } =
-        await response.json();
+      const data: {
+        users: Record<string, string>;
+        seen?: SeenPerson[];
+        assignableRoles?: string[];
+        bootstrapAdmins?: string[];
+      } = await response.json();
 
       const pinned = data.bootstrapAdmins ?? [];
 
       setBootstrapAdmins(pinned);
+      setSeen(data.seen ?? []);
       setRows(
         Object.entries(data.users ?? {})
           .filter(([email]) => !pinned.includes(email.toLowerCase()))
@@ -124,6 +136,23 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
     }
   };
 
+  // Signed in, but nobody gave them a role: Members by default. Listed so the whole team is visible; picking
+  // a role for one of them turns it into an ordinary assigned row.
+  const defaultMembers = seen.filter(
+    (person) => !bootstrapAdmins.includes(person.email) && !rows.some((row) => row.email === person.email),
+  );
+  const seenName = (email: string) => seen.find((person) => person.email === email)?.name;
+  // The profile name wins; before a profile is filled in, the name from the sign-in provider.
+  const personName = (email: string) => (nameOf(email) !== email ? nameOf(email) : seenName(email) || email);
+
+  const assignRole = (email: string, role: string) => {
+    if (role === DEFAULT_ROLE) return;
+    const next = [...rows, { email, role }];
+
+    setRows(next);
+    persist(next);
+  };
+
   const changeRole = (index: number, role: string) => {
     const next = rows.map((row, i) => (i === index ? { ...row, role } : row));
 
@@ -142,7 +171,9 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
   const roleLabel = (role: string) => (ROLE_ORDER.includes(role as RoleKey) ? t(`roleName.${role as RoleKey}`) : role);
   // Administrators from the server config count too; they are listed locked below.
   const usersIn = (role: RoleKey) =>
-    rows.filter((row) => row.role === role).length + (role === ROLES.administrator ? bootstrapAdmins.length : 0);
+    rows.filter((row) => row.role === role).length +
+    (role === ROLES.administrator ? bootstrapAdmins.length : 0) +
+    (role === DEFAULT_ROLE ? defaultMembers.length : 0);
 
   const commitNewEmail = () => {
     const email = addingEmail?.trim().toLowerCase();
@@ -213,9 +244,9 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
               avatarUpdatedAt={profileOf(email)?.avatarUpdatedAt}
               className="h-[22px] w-[22px] text-[10px]"
               email={email}
-              name={nameOf(email)}
+              name={personName(email)}
             />
-            <PersonLine email={email} name={nameOf(email)} />
+            <PersonLine email={email} name={personName(email)} />
             <span
               className="inline-flex h-[19px] w-fit items-center gap-1 rounded-md bg-warning/15 px-1.5 text-[10.5px] font-medium text-warning"
               title={t('lockedHint')}
@@ -253,44 +284,74 @@ export function AccessCard({ apiToken, authRequired, onCountChange }: Readonly<A
           <div className="p-4">
             <BlockSkeleton lines={3} />
           </div>
-        ) : rows.length === 0 && bootstrapAdmins.length === 0 && addingEmail === null ? (
+        ) : rows.length === 0 && defaultMembers.length === 0 && bootstrapAdmins.length === 0 && addingEmail === null ? (
           <p className="p-4 text-[12.5px] text-default-500">{t('nobody')}</p>
         ) : (
-          rows.map((row, index) => (
-            <div
-              key={row.email}
-              className="grid h-11 items-center gap-2 border-b border-divider px-3 last:border-0"
-              style={{ gridTemplateColumns: TEMPLATE }}
-            >
-              <PersonAvatar
-                avatarUpdatedAt={profileOf(row.email)?.avatarUpdatedAt}
-                className="h-[22px] w-[22px] text-[10px]"
-                email={row.email}
-                name={nameOf(row.email)}
-              />
-              <PersonLine email={row.email} name={nameOf(row.email)} />
-              <Select
-                aria-label={t('role')}
-                classNames={{ trigger: 'h-7 min-h-7' }}
-                isDisabled={isSaving}
-                selectedKeys={[row.role]}
-                size="sm"
-                onChange={(e) => changeRole(index, e.target.value)}
+          <>
+            {rows.map((row, index) => (
+              <div
+                key={row.email}
+                className="grid h-11 items-center gap-2 border-b border-divider px-3 last:border-0"
+                style={{ gridTemplateColumns: TEMPLATE }}
               >
-                {roleOptions.map((role) => (
-                  <SelectItem key={role}>{roleLabel(role)}</SelectItem>
-                ))}
-              </Select>
-              <button
-                aria-label={t('remove')}
-                className="flex h-6 w-6 items-center justify-center rounded-md text-default-400 hover:bg-danger/10 hover:text-danger"
-                type="button"
-                onClick={() => removeRow(index)}
+                <PersonAvatar
+                  avatarUpdatedAt={profileOf(row.email)?.avatarUpdatedAt}
+                  className="h-[22px] w-[22px] text-[10px]"
+                  email={row.email}
+                  name={personName(row.email)}
+                />
+                <PersonLine email={row.email} name={personName(row.email)} />
+                <Select
+                  aria-label={t('role')}
+                  classNames={{ trigger: 'h-7 min-h-7' }}
+                  isDisabled={isSaving}
+                  selectedKeys={[row.role]}
+                  size="sm"
+                  onChange={(e) => changeRole(index, e.target.value)}
+                >
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role}>{roleLabel(role)}</SelectItem>
+                  ))}
+                </Select>
+                <button
+                  aria-label={t('remove')}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-default-400 hover:bg-danger/10 hover:text-danger"
+                  type="button"
+                  onClick={() => removeRow(index)}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+            {defaultMembers.map(({ email }) => (
+              <div
+                key={`seen-${email}`}
+                className="grid h-11 items-center gap-2 border-b border-divider px-3 last:border-0"
+                style={{ gridTemplateColumns: TEMPLATE }}
               >
-                <Trash2 size={13} />
-              </button>
-            </div>
-          ))
+                <PersonAvatar
+                  avatarUpdatedAt={profileOf(email)?.avatarUpdatedAt}
+                  className="h-[22px] w-[22px] text-[10px]"
+                  email={email}
+                  name={personName(email)}
+                />
+                <PersonLine email={email} name={personName(email)} />
+                <Select
+                  aria-label={t('role')}
+                  classNames={{ trigger: 'h-7 min-h-7' }}
+                  isDisabled={isSaving}
+                  selectedKeys={[DEFAULT_ROLE]}
+                  size="sm"
+                  onChange={(e) => assignRole(email, e.target.value)}
+                >
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role}>{roleLabel(role)}</SelectItem>
+                  ))}
+                </Select>
+                <span />
+              </div>
+            ))}
+          </>
         )}
       </div>
 

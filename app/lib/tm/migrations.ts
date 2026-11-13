@@ -139,4 +139,12 @@ export const MIGRATIONS: string[] = [
   );
   CREATE INDEX tm_case_history_case ON tm_case_history(case_id);
   `,
+  // 7: who has signed in and when last (see signIns.ts), so the access list can show the whole team.
+  `
+  CREATE TABLE user_sign_ins (
+    email TEXT PRIMARY KEY,
+    name TEXT NOT NULL DEFAULT '',
+    last_seen_at TEXT NOT NULL
+  );
+  `,
 ];

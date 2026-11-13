@@ -20,6 +20,18 @@ const resolveGoogleRole = async (email: string | null | undefined): Promise<Role
   return envRole === ROLES.administrator ? envRole : (normalizeRole(assigned) ?? envRole ?? undefined);
 };
 
+// Remembers the person for the access list. Never blocks a sign-in: the list is a convenience.
+const rememberSignIn = async (email: string | null | undefined, name: string | null | undefined) => {
+  if (!email) return;
+  try {
+    const [{ getDb }, { recordSignIn }] = await Promise.all([import('./lib/tm/db'), import('./lib/signIns')]);
+
+    recordSignIn(getDb(), email, name);
+  } catch (error) {
+    console.error('[auth] could not record the sign-in', error);
+  }
+};
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   callbacks: {
@@ -44,6 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.roleCheckedAt = Date.now();
           token.email = user.email ?? undefined;
           token.jwtToken = `oauth:${user.email}`;
+          await rememberSignIn(user.email, user.name);
         } else {
           token.apiToken = user.apiToken;
           token.jwtToken = user.jwtToken;

@@ -1,14 +1,17 @@
 import { auth } from '@/app/auth';
 import { getUserRoles, saveUserRoles, type UserRoles } from '@/app/lib/roleStore';
-import { ASSIGNABLE_ROLES, isAdminRole, normalizeRole, ROLES } from '@/app/lib/access';
+import { ASSIGNABLE_ROLES, isAdminRole, normalizeRole, resolveRole, ROLES } from '@/app/lib/access';
+import { AUTH_ENABLED, ROLE_POLICY } from '@/app/lib/authFlags';
+import { listSignIns } from '@/app/lib/signIns';
+import { getDb } from '@/app/lib/tm/db';
+import { withError } from '@/app/lib/withError';
 
 // Only administrator and member can be handed out; names from before the rename are read as their new ones.
-const assignable = (role: string): string => (isAdminRole(role) ? ROLES.administrator : (normalizeRole(role) ?? ROLES.member));
+const assignable = (role: string): string =>
+  isAdminRole(role) ? ROLES.administrator : (normalizeRole(role) ?? ROLES.member);
 
 const assignableMap = (users: UserRoles): UserRoles =>
   Object.fromEntries(Object.entries(users).map(([email, role]) => [email, assignable(String(role))]));
-import { AUTH_ENABLED, ROLE_POLICY } from '@/app/lib/authFlags';
-import { withError } from '@/app/lib/withError';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +31,11 @@ export async function GET() {
 
   // Emails from AUTH_ADMIN_EMAILS are permanent administrators (can't be edited/removed in the UI) —
   // surfaced so the client can show them as locked rows.
-  return Response.json({ users, assignableRoles: ASSIGNABLE_ROLES, bootstrapAdmins: ROLE_POLICY.adminEmails });
+  // People who have signed in and still get a role from the allowed domain. Those without an assigned role
+  // are Members by default; the client lists them so an administrator sees the whole team.
+  const seen = listSignIns(getDb()).filter((person) => resolveRole(person.email, ROLE_POLICY) !== null);
+
+  return Response.json({ users, seen, assignableRoles: ASSIGNABLE_ROLES, bootstrapAdmins: ROLE_POLICY.adminEmails });
 }
 
 export async function POST(request: Request) {
